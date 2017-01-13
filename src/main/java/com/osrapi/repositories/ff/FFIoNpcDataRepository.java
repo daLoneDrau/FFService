@@ -118,6 +118,12 @@ extends CrudRepository<FFIoNpcDataEntity, Long> {
 	 */
 	List<FFIoNpcDataEntity> findByTitle(String title);
 	/**
+	 * Retrieves a list of io npc datas by their weapon.
+	 * @param weapon the weapon
+	 * @return {@link List}<{@link FFIoNpcDataEntity}>
+	 */
+	List<FFIoNpcDataEntity> findByWeapon(String weapon);
+	/**
 	 * Retrieves a list of io npc datas by their xpvalue.
 	 * @param xpvalue the xpvalue
 	 * @return {@link List}<{@link FFIoNpcDataEntity}>

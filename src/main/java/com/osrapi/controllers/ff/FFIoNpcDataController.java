@@ -624,6 +624,25 @@ public class FFIoNpcDataController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFIoNpcDataEntity}s that share a weapon.
+     * @param weapon the io_npc_data' weapon
+     * @return {@link List}<{@link Resource}<{@link FFIoNpcDataEntity}>>
+     */
+    @RequestMapping(path = "weapon/{weapon}",
+            method = RequestMethod.GET)
+    public List<Resource<FFIoNpcDataEntity>> getByWeapon(
+            @PathVariable final String weapon) {
+        Iterator<FFIoNpcDataEntity> iter = repository.findByWeapon(weapon)
+                .iterator();
+        List<Resource<FFIoNpcDataEntity>> resources =
+                new ArrayList<Resource<FFIoNpcDataEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getIoNpcDataResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a list of {@link FFIoNpcDataEntity}s that share a xpvalue.
      * @param xpvalue the io_npc_data' xpvalue
      * @return {@link List}<{@link Resource}<{@link FFIoNpcDataEntity}>>

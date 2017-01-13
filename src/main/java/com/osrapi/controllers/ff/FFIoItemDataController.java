@@ -765,6 +765,25 @@ public class FFIoItemDataController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFIoItemDataEntity}s that share a title.
+     * @param title the io_item_data' title
+     * @return {@link List}<{@link Resource}<{@link FFIoItemDataEntity}>>
+     */
+    @RequestMapping(path = "title/{title}",
+            method = RequestMethod.GET)
+    public List<Resource<FFIoItemDataEntity>> getByTitle(
+            @PathVariable final String title) {
+        Iterator<FFIoItemDataEntity> iter = repository.findByTitle(title)
+                .iterator();
+        List<Resource<FFIoItemDataEntity>> resources =
+                new ArrayList<Resource<FFIoItemDataEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getIoItemDataResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a list of {@link FFIoItemDataEntity}s that share a weight.
      * @param weight the io_item_data' weight
      * @return {@link List}<{@link Resource}<{@link FFIoItemDataEntity}>>

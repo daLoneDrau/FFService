@@ -93,6 +93,26 @@ public final class FFIoItemDataEntity {
         weight = val;
     }
 
+    /** the title. */
+    @Column(name = "title")
+    @JsonProperty("title")
+    @NotNull
+    private String                    title;
+    /**
+     * Gets the title.
+     * @return {@link String}
+     */
+    public String getTitle() {
+        return title;
+    }
+    /**
+     * Sets the title.
+     * @param val the new value
+     */
+    public void setTitle(final String val) {
+        title = val;
+    }
+
     /** the stealValue. */
     @Column(name = "steal_value")
     @JsonProperty("steal_value")

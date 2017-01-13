@@ -93,6 +93,26 @@ public final class FFIoNpcDataEntity {
         xpvalue = val;
     }
 
+    /** the weapon. */
+    @Column(name = "weapon")
+    @JsonProperty("weapon")
+    @NotNull
+    private String                    weapon;
+    /**
+     * Gets the weapon.
+     * @return {@link String}
+     */
+    public String getWeapon() {
+        return weapon;
+    }
+    /**
+     * Sets the weapon.
+     * @param val the new value
+     */
+    public void setWeapon(final String val) {
+        weapon = val;
+    }
+
     /** the title. */
     @Column(name = "title")
     @JsonProperty("title")

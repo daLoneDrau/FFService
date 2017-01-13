@@ -88,6 +88,12 @@ extends CrudRepository<FFIoItemDataEntity, Long> {
 	 */
 	List<FFIoItemDataEntity> findByStealValue(Long stealValue);
 	/**
+	 * Retrieves a list of io item datas by their title.
+	 * @param title the title
+	 * @return {@link List}<{@link FFIoItemDataEntity}>
+	 */
+	List<FFIoItemDataEntity> findByTitle(String title);
+	/**
 	 * Retrieves a list of io item datas by their weight.
 	 * @param weight the weight
 	 * @return {@link List}<{@link FFIoItemDataEntity}>
