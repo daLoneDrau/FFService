@@ -458,20 +458,20 @@ public final class FFIoNpcDataEntity {
     /** the behavior. */
     @Column(name = "behavior")
     @JsonProperty("behavior")
-    @NotNull
-    private long                    behavior;
+    
+    private Long                    behavior;
     /**
      * Gets the behavior.
-     * @return {@link long}
+     * @return {@link Long}
      */
-    public long getBehavior() {
+    public Long getBehavior() {
         return behavior;
     }
     /**
      * Sets the behavior.
      * @param val the new value
      */
-    public void setBehavior(final long val) {
+    public void setBehavior(final Long val) {
         behavior = val;
     }
 

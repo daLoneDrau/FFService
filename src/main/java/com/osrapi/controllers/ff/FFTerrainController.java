@@ -17,78 +17,78 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.osrapi.models.ff.FFRoomEntity;
+import com.osrapi.models.ff.FFTerrainEntity;
 
-import com.osrapi.repositories.ff.FFRoomRepository;
+import com.osrapi.repositories.ff.FFTerrainRepository;
 
 /**
  * @author drau
  */
 @CrossOrigin
 @RestController
-@RequestMapping(path = "/ff/rooms")
+@RequestMapping(path = "/ff/terrains")
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class FFRoomController {
-    /** the static instance of {@link FFRoomController}. */
-    private static FFRoomController instance;
+public class FFTerrainController {
+    /** the static instance of {@link FFTerrainController}. */
+    private static FFTerrainController instance;
     /**
      * Gets the static instance.
-     * @return {@link FFRoomController}
+     * @return {@link FFTerrainController}
      */
-    public static FFRoomController getInstance() {
+    public static FFTerrainController getInstance() {
         if (instance == null) {
-            new FFRoomController();
+            new FFTerrainController();
         }
         return instance;
     }
     /** the data repository. */
     @Autowired
-    private FFRoomRepository repository;
-    /** Creates a new instance of {@link FFRoomController}. */
-    public FFRoomController() {
+    private FFTerrainRepository repository;
+    /** Creates a new instance of {@link FFTerrainController}. */
+    public FFTerrainController() {
         instance = this;
     }
     /**
-     * Gets a list of {@link FFRoomEntity}s.
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     * Gets a list of {@link FFTerrainEntity}s.
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
     @RequestMapping(method = RequestMethod.GET)
-    public List<Resource<FFRoomEntity>> getAll() {
-        Iterator<FFRoomEntity> iter = repository.findAll()
+    public List<Resource<FFTerrainEntity>> getAll() {
+        Iterator<FFTerrainEntity> iter = repository.findAll()
                 .iterator();
-        List<Resource<FFRoomEntity>> resources =
-                new ArrayList<Resource<FFRoomEntity>>();
+        List<Resource<FFTerrainEntity>> resources =
+                new ArrayList<Resource<FFTerrainEntity>>();
         while (iter.hasNext()) {
-            resources.add(getRoomResource(iter.next()));
+            resources.add(getTerrainResource(iter.next()));
         }
         iter = null;
         return resources;
     }
     /**
-     * Gets a single {@link FFRoomEntity}.
+     * Gets a single {@link FFTerrainEntity}.
      * @param id the event type's id
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
-    public List<Resource<FFRoomEntity>> getById(
+    public List<Resource<FFTerrainEntity>> getById(
             @PathVariable final Long id) {
-        FFRoomEntity entity = repository.findOne(id);
-        List<Resource<FFRoomEntity>> resources =
-                new ArrayList<Resource<FFRoomEntity>>();
-        resources.add(getRoomResource(entity));
+        FFTerrainEntity entity = repository.findOne(id);
+        List<Resource<FFTerrainEntity>> resources =
+                new ArrayList<Resource<FFTerrainEntity>>();
+        resources.add(getTerrainResource(entity));
         entity = null;
         return resources;
     }
     /**
      * Gets a {@link Resource} instance with links for the
-     * {@link FFRoomEntity}.
-     * @param entity the {@link FFRoomEntity}
-     * @return {@link Resource}<{@link FFRoomEntity}>
+     * {@link FFTerrainEntity}.
+     * @param entity the {@link FFTerrainEntity}
+     * @return {@link Resource}<{@link FFTerrainEntity}>
      */
-    private Resource<FFRoomEntity> getRoomResource(
-            final FFRoomEntity entity) {
-        Resource<FFRoomEntity> resource =
-                new Resource<FFRoomEntity>(
+    private Resource<FFTerrainEntity> getTerrainResource(
+            final FFTerrainEntity entity) {
+        Resource<FFTerrainEntity> resource =
+                new Resource<FFTerrainEntity>(
                 entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
@@ -98,16 +98,16 @@ public class FFRoomController {
         return resource;
     }
     /**
-     * Saves multiple {@link FFRoomEntity}s.
-     * @param entities the list of {@link FFRoomEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     * Saves multiple {@link FFTerrainEntity}s.
+     * @param entities the list of {@link FFTerrainEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
-    public List<Resource<FFRoomEntity>> save(
-            @RequestBody final List<FFRoomEntity> entities) {
-        List<Resource<FFRoomEntity>> resources =
-                new ArrayList<Resource<FFRoomEntity>>();
-        Iterator<FFRoomEntity> iter = entities.iterator();
+    public List<Resource<FFTerrainEntity>> save(
+            @RequestBody final List<FFTerrainEntity> entities) {
+        List<Resource<FFTerrainEntity>> resources =
+                new ArrayList<Resource<FFTerrainEntity>>();
+        Iterator<FFTerrainEntity> iter = entities.iterator();
         while (iter.hasNext()) {
             resources.add(save(iter.next()).get(0));
         }
@@ -115,17 +115,17 @@ public class FFRoomController {
         return resources;
     }
     /**
-     * Saves a single {@link FFRoomEntity}.
-     * @param entity the {@link FFRoomEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     * Saves a single {@link FFTerrainEntity}.
+     * @param entity the {@link FFTerrainEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
     @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFRoomEntity>> save(
-            @RequestBody final FFRoomEntity entity) {
+    public List<Resource<FFTerrainEntity>> save(
+            @RequestBody final FFTerrainEntity entity) {
     
     
-        FFRoomEntity savedEntity = repository.save(entity);
-        List<Resource<FFRoomEntity>> list =
+        FFTerrainEntity savedEntity = repository.save(entity);
+        List<Resource<FFTerrainEntity>> list =
                 getById(savedEntity.getId());
         savedEntity = null;
         return list;
@@ -133,17 +133,17 @@ public class FFRoomController {
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
      * repository.
-     * @param entity the {@link FFRoomEntity} instance
+     * @param entity the {@link FFTerrainEntity} instance
      */
-    private void setIdFromRepository(final FFRoomEntity entity) {
-        List<FFRoomEntity> old = null;
+    private void setIdFromRepository(final FFTerrainEntity entity) {
+        List<FFTerrainEntity> old = null;
         try {
             Method method = null;
             Field field = null;
             try {
                 method = repository.getClass().getDeclaredMethod(
                         "findByName", new Class[] { String.class });
-                field = FFRoomEntity.class.getDeclaredField("name");
+                field = FFTerrainEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -152,7 +152,7 @@ public class FFRoomController {
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
-                    old = (List<FFRoomEntity>) method.invoke(
+                    old = (List<FFTerrainEntity>) method.invoke(
               repository, (String) field.get(entity));
                 }
             }
@@ -162,7 +162,7 @@ public class FFRoomController {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
-                    field = FFRoomEntity.class.getDeclaredField(
+                    field = FFTerrainEntity.class.getDeclaredField(
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
@@ -172,7 +172,7 @@ public class FFRoomController {
                         && field != null) {
                     field.setAccessible(true);
                     if (field.get(entity) != null) {
-                        old = (List<FFRoomEntity>) method.invoke(
+                        old = (List<FFTerrainEntity>) method.invoke(
                                 repository, (String) field.get(entity));
                     }
                 }
@@ -191,15 +191,15 @@ public class FFRoomController {
         old = null;        
     }
     /**
-     * Updates multiple {@link FFRoomEntity}s.
-     * @param entities the list of {@link FFRoomEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     * Updates multiple {@link FFTerrainEntity}s.
+     * @param entities the list of {@link FFTerrainEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFRoomEntity>> update(
-            @RequestBody final List<FFRoomEntity> entities) {
-        List<Resource<FFRoomEntity>> resources = new ArrayList<Resource<FFRoomEntity>>();
-        Iterator<FFRoomEntity> iter = entities.iterator();
+    public List<Resource<FFTerrainEntity>> update(
+            @RequestBody final List<FFTerrainEntity> entities) {
+        List<Resource<FFTerrainEntity>> resources = new ArrayList<Resource<FFTerrainEntity>>();
+        Iterator<FFTerrainEntity> iter = entities.iterator();
         while (iter.hasNext()) {
             resources.add(update(iter.next()).get(0));
         }
@@ -207,40 +207,40 @@ public class FFRoomController {
         return resources;
     }
     /**
-     * Updates a single {@link FFRoomEntity}.
-     * @param entity the {@link FFRoomEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     * Updates a single {@link FFTerrainEntity}.
+     * @param entity the {@link FFTerrainEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
     @RequestMapping(method = RequestMethod.PUT)
-    public List<Resource<FFRoomEntity>> update(
-            @RequestBody final FFRoomEntity entity) {        
+    public List<Resource<FFTerrainEntity>> update(
+            @RequestBody final FFTerrainEntity entity) {        
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
     
     
-        FFRoomEntity savedEntity = repository.save(entity);
-        List<Resource<FFRoomEntity>> list = getById(
+        FFTerrainEntity savedEntity = repository.save(entity);
+        List<Resource<FFTerrainEntity>> list = getById(
                 savedEntity.getId());
         savedEntity = null;
         return list;
     }
 
     /**
-     * Gets a list of {@link FFRoomEntity}s that share a code.
-     * @param code the room' code
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     * Gets a list of {@link FFTerrainEntity}s that share a name.
+     * @param name the terrain' name
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
-    @RequestMapping(path = "code/{code}",
+    @RequestMapping(path = "name/{name}",
             method = RequestMethod.GET)
-    public List<Resource<FFRoomEntity>> getByCode(
-            @PathVariable final String code) {
-        Iterator<FFRoomEntity> iter = repository.findByCode(code)
+    public List<Resource<FFTerrainEntity>> getByName(
+            @PathVariable final String name) {
+        Iterator<FFTerrainEntity> iter = repository.findByName(name)
                 .iterator();
-        List<Resource<FFRoomEntity>> resources =
-                new ArrayList<Resource<FFRoomEntity>>();
+        List<Resource<FFTerrainEntity>> resources =
+                new ArrayList<Resource<FFTerrainEntity>>();
         while (iter.hasNext()) {
-            resources.add(getRoomResource(iter.next()));
+            resources.add(getTerrainResource(iter.next()));
         }
         iter = null;
         return resources;
