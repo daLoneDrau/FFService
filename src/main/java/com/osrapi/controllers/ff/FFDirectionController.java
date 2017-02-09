@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFDirectionEntity;
-
 import com.osrapi.repositories.ff.FFDirectionRepository;
 
 /**
@@ -65,18 +64,59 @@ public class FFDirectionController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFDirectionEntity}s that share a code.
+     * @param code the direction' code
+     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
+     */
+    @RequestMapping(path = "code/{code}",
+            method = RequestMethod.GET)
+    public List<Resource<FFDirectionEntity>> getByCode(
+            @PathVariable
+            final String code) {
+        Iterator<FFDirectionEntity> iter = repository.findByCode(code)
+                .iterator();
+        List<Resource<FFDirectionEntity>> resources =
+                new ArrayList<Resource<FFDirectionEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getDirectionResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a single {@link FFDirectionEntity}.
      * @param id the event type's id
      * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFDirectionEntity>> getById(
-            @PathVariable final Long id) {
+            @PathVariable
+            final Long id) {
         FFDirectionEntity entity = repository.findOne(id);
         List<Resource<FFDirectionEntity>> resources =
                 new ArrayList<Resource<FFDirectionEntity>>();
         resources.add(getDirectionResource(entity));
         entity = null;
+        return resources;
+    }
+    /**
+     * Gets a list of {@link FFDirectionEntity}s that share a value.
+     * @param value the direction' value
+     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
+     */
+    @RequestMapping(path = "value/{value}",
+            method = RequestMethod.GET)
+    public List<Resource<FFDirectionEntity>> getByValue(
+            @PathVariable
+            final Long value) {
+        Iterator<FFDirectionEntity> iter = repository.findByValue(value)
+                .iterator();
+        List<Resource<FFDirectionEntity>> resources =
+                new ArrayList<Resource<FFDirectionEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getDirectionResource(iter.next()));
+        }
+        iter = null;
         return resources;
     }
     /**
@@ -89,7 +129,7 @@ public class FFDirectionController {
             final FFDirectionEntity entity) {
         Resource<FFDirectionEntity> resource =
                 new Resource<FFDirectionEntity>(
-                entity);
+                        entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -98,13 +138,30 @@ public class FFDirectionController {
         return resource;
     }
     /**
+     * Saves a single {@link FFDirectionEntity}.
+     * @param entity the {@link FFDirectionEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFDirectionEntity>> save(
+            @RequestBody
+            final FFDirectionEntity entity) {
+
+        FFDirectionEntity savedEntity = repository.save(entity);
+        List<Resource<FFDirectionEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+    /**
      * Saves multiple {@link FFDirectionEntity}s.
      * @param entities the list of {@link FFDirectionEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
     public List<Resource<FFDirectionEntity>> save(
-            @RequestBody final List<FFDirectionEntity> entities) {
+            @RequestBody
+            final List<FFDirectionEntity> entities) {
         List<Resource<FFDirectionEntity>> resources =
                 new ArrayList<Resource<FFDirectionEntity>>();
         Iterator<FFDirectionEntity> iter = entities.iterator();
@@ -113,22 +170,6 @@ public class FFDirectionController {
         }
         iter = null;
         return resources;
-    }
-    /**
-     * Saves a single {@link FFDirectionEntity}.
-     * @param entity the {@link FFDirectionEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFDirectionEntity>> save(
-            @RequestBody final FFDirectionEntity entity) {
-    
-    
-        FFDirectionEntity savedEntity = repository.save(entity);
-        List<Resource<FFDirectionEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -146,19 +187,20 @@ public class FFDirectionController {
                 field = FFDirectionEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(
+                        "Cannot get Entity FFDirectionEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFDirectionEntity>) method.invoke(
-              repository, (String) field.get(entity));
+                            repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                    && old.size() > 1)) {
+                            && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -166,7 +208,8 @@ public class FFDirectionController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    System.out.println(
+                            "Cannot get Entity FFDirectionEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -182,13 +225,34 @@ public class FFDirectionController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            e.printStackTrace();
+            System.out.println(
+                    "Cannot get Entity FFDirectionEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;        
+        old = null;
+    }
+
+    /**
+     * Updates a single {@link FFDirectionEntity}.
+     * @param entity the {@link FFDirectionEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.PUT)
+    public List<Resource<FFDirectionEntity>> update(
+            @RequestBody
+            final FFDirectionEntity entity) {
+        if (entity.getId() == null) {
+            setIdFromRepository(entity);
+        }
+
+        FFDirectionEntity savedEntity = repository.save(entity);
+        List<Resource<FFDirectionEntity>> list = getById(
+                savedEntity.getId());
+        savedEntity = null;
+        return list;
     }
     /**
      * Updates multiple {@link FFDirectionEntity}s.
@@ -197,69 +261,13 @@ public class FFDirectionController {
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
     public List<Resource<FFDirectionEntity>> update(
-            @RequestBody final List<FFDirectionEntity> entities) {
-        List<Resource<FFDirectionEntity>> resources = new ArrayList<Resource<FFDirectionEntity>>();
+            @RequestBody
+            final List<FFDirectionEntity> entities) {
+        List<Resource<FFDirectionEntity>> resources =
+                new ArrayList<Resource<FFDirectionEntity>>();
         Iterator<FFDirectionEntity> iter = entities.iterator();
         while (iter.hasNext()) {
             resources.add(update(iter.next()).get(0));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
-     * Updates a single {@link FFDirectionEntity}.
-     * @param entity the {@link FFDirectionEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.PUT)
-    public List<Resource<FFDirectionEntity>> update(
-            @RequestBody final FFDirectionEntity entity) {        
-        if (entity.getId() == null) {
-            setIdFromRepository(entity);
-        }
-    
-    
-        FFDirectionEntity savedEntity = repository.save(entity);
-        List<Resource<FFDirectionEntity>> list = getById(
-                savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-
-    /**
-     * Gets a list of {@link FFDirectionEntity}s that share a code.
-     * @param code the direction' code
-     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
-     */
-    @RequestMapping(path = "code/{code}",
-            method = RequestMethod.GET)
-    public List<Resource<FFDirectionEntity>> getByCode(
-            @PathVariable final String code) {
-        Iterator<FFDirectionEntity> iter = repository.findByCode(code)
-                .iterator();
-        List<Resource<FFDirectionEntity>> resources =
-                new ArrayList<Resource<FFDirectionEntity>>();
-        while (iter.hasNext()) {
-            resources.add(getDirectionResource(iter.next()));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
-     * Gets a list of {@link FFDirectionEntity}s that share a value.
-     * @param value the direction' value
-     * @return {@link List}<{@link Resource}<{@link FFDirectionEntity}>>
-     */
-    @RequestMapping(path = "value/{value}",
-            method = RequestMethod.GET)
-    public List<Resource<FFDirectionEntity>> getByValue(
-            @PathVariable final Long value) {
-        Iterator<FFDirectionEntity> iter = repository.findByValue(value)
-                .iterator();
-        List<Resource<FFDirectionEntity>> resources =
-                new ArrayList<Resource<FFDirectionEntity>>();
-        while (iter.hasNext()) {
-            resources.add(getDirectionResource(iter.next()));
         }
         iter = null;
         return resources;

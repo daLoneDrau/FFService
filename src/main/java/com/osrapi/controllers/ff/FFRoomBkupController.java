@@ -17,10 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.osrapi.models.ff.FFDoorEntity;
 import com.osrapi.models.ff.FFRoomBkupEntity;
 import com.osrapi.models.ff.FFTextEntity;
-import com.osrapi.models.ff.FFDoorEntity;
-
 import com.osrapi.repositories.ff.FFRoomBkupRepository;
 
 /**
@@ -67,13 +66,34 @@ public class FFRoomBkupController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFRoomBkupEntity}s that share a code.
+     * @param code the room_bkup' code
+     * @return {@link List}<{@link Resource}<{@link FFRoomBkupEntity}>>
+     */
+    @RequestMapping(path = "code/{code}",
+            method = RequestMethod.GET)
+    public List<Resource<FFRoomBkupEntity>> getByCode(
+            @PathVariable
+            final String code) {
+        Iterator<FFRoomBkupEntity> iter = repository.findByCode(code)
+                .iterator();
+        List<Resource<FFRoomBkupEntity>> resources =
+                new ArrayList<Resource<FFRoomBkupEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getRoomBkupResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a single {@link FFRoomBkupEntity}.
      * @param id the event type's id
      * @return {@link List}<{@link Resource}<{@link FFRoomBkupEntity}>>
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFRoomBkupEntity>> getById(
-            @PathVariable final Long id) {
+            @PathVariable
+            final Long id) {
         FFRoomBkupEntity entity = repository.findOne(id);
         List<Resource<FFRoomBkupEntity>> resources =
                 new ArrayList<Resource<FFRoomBkupEntity>>();
@@ -91,7 +111,7 @@ public class FFRoomBkupController {
             final FFRoomBkupEntity entity) {
         Resource<FFRoomBkupEntity> resource =
                 new Resource<FFRoomBkupEntity>(
-                entity);
+                        entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -100,30 +120,14 @@ public class FFRoomBkupController {
         return resource;
     }
     /**
-     * Saves multiple {@link FFRoomBkupEntity}s.
-     * @param entities the list of {@link FFRoomBkupEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFRoomBkupEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.POST)
-    public List<Resource<FFRoomBkupEntity>> save(
-            @RequestBody final List<FFRoomBkupEntity> entities) {
-        List<Resource<FFRoomBkupEntity>> resources =
-                new ArrayList<Resource<FFRoomBkupEntity>>();
-        Iterator<FFRoomBkupEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(save(iter.next()).get(0));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
      * Saves a single {@link FFRoomBkupEntity}.
      * @param entity the {@link FFRoomBkupEntity} instance
      * @return {@link List}<{@link Resource}<{@link FFRoomBkupEntity}>>
      */
     @RequestMapping(method = RequestMethod.POST)
     public List<Resource<FFRoomBkupEntity>> save(
-            @RequestBody final FFRoomBkupEntity entity) {
+            @RequestBody
+            final FFRoomBkupEntity entity) {
         if (entity.getDoors() != null
                 && !entity.getDoors().isEmpty()) {
             for (int i = entity.getDoors().size() - 1; i >= 0; i--) {
@@ -131,18 +135,20 @@ public class FFRoomBkupController {
                 List<Resource<FFDoorEntity>> list = null;
                 try {
                     Method method = null;
-          try {
-            method = FFDoorController.class.getDeclaredMethod(
-                "getByName", new Class[] { String.class });
-          } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
+                    try {
+                        method = FFDoorController.class.getDeclaredMethod(
+                                "getByName", new Class[] { String.class });
+                    } catch (NoSuchMethodException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFDoorEntity from Controller by name");
                     }
                     Field field = null;
-          try {
-            field = FFDoorEntity.class
-                .getDeclaredField("name");
-          } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
+                    try {
+                        field = FFDoorEntity.class
+                                .getDeclaredField("name");
+                    } catch (NoSuchFieldException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFDoorEntity from class by name");
                     }
                     if (method != null
                             && field != null) {
@@ -151,22 +157,25 @@ public class FFRoomBkupController {
                             list = (List<Resource<FFDoorEntity>>) method
                                     .invoke(
                                             FFDoorController.getInstance(),
-                                            (String) field.get(entity.getDoors().get(i)));
+                                            (String) field.get(
+                                                    entity.getDoors().get(i)));
                         }
                     }
                     if (list == null) {
-            try {
-              method = FFDoorController.class.getDeclaredMethod(
-                  "getByCode", new Class[] { String.class });
-            } catch (NoSuchMethodException e) {
-              e.printStackTrace();
-            }
-            try {
-              field = FFDoorEntity.class.getDeclaredField(
-                  "code");
-            } catch (NoSuchFieldException e) {
-              e.printStackTrace();
-            }
+                        try {
+                            method = FFDoorController.class.getDeclaredMethod(
+                                    "getByCode", new Class[] { String.class });
+                        } catch (NoSuchMethodException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFDoorEntity from Controller by code");
+                        }
+                        try {
+                            field = FFDoorEntity.class.getDeclaredField(
+                                    "code");
+                        } catch (NoSuchFieldException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFDoorEntity from class by code");
+                        }
                         if (method != null
                                 && field != null) {
                             field.setAccessible(true);
@@ -176,7 +185,8 @@ public class FFRoomBkupController {
                                                 FFDoorController
                                                         .getInstance(),
                                                 (String) field
-                                                        .get(entity.getDoors().get(i)));
+                                                        .get(entity.getDoors()
+                                                                .get(i)));
                             }
                         }
                     }
@@ -185,7 +195,8 @@ public class FFRoomBkupController {
                 } catch (SecurityException | IllegalArgumentException
                         | IllegalAccessException
                         | InvocationTargetException e) {
-                    e.printStackTrace();
+                    System.out.println(
+                            "CANNOT get embedded lookup Entity FFDoorEntity by name or code");
                 }
                 if (list != null
                         && !list.isEmpty()) {
@@ -194,7 +205,8 @@ public class FFRoomBkupController {
                 if (doors == null) {
                     doors = (FFDoorEntity) ((Resource) FFDoorController
                             .getInstance()
-                            .save(entity.getDoors().get(i)).get(0)).getContent();
+                            .save(entity.getDoors().get(i)).get(0))
+                                    .getContent();
                 }
                 entity.getDoors().set(i, doors);
                 list = null;
@@ -202,17 +214,33 @@ public class FFRoomBkupController {
         }
 
         if (entity.getText() != null
-        && entity.getText().getId() == null) {
-      setTextIdFromRepository(entity);
+                && entity.getText().getId() == null) {
+            setTextIdFromRepository(entity);
         }
 
-
-    
         FFRoomBkupEntity savedEntity = repository.save(entity);
         List<Resource<FFRoomBkupEntity>> list =
                 getById(savedEntity.getId());
         savedEntity = null;
         return list;
+    }
+    /**
+     * Saves multiple {@link FFRoomBkupEntity}s.
+     * @param entities the list of {@link FFRoomBkupEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFRoomBkupEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.POST)
+    public List<Resource<FFRoomBkupEntity>> save(
+            @RequestBody
+            final List<FFRoomBkupEntity> entities) {
+        List<Resource<FFRoomBkupEntity>> resources =
+                new ArrayList<Resource<FFRoomBkupEntity>>();
+        Iterator<FFRoomBkupEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(save(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -230,19 +258,20 @@ public class FFRoomBkupController {
                 field = FFRoomBkupEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(
+                        "Cannot get Entity FFRoomBkupEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFRoomBkupEntity>) method.invoke(
-              repository, (String) field.get(entity));
+                            repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                    && old.size() > 1)) {
+                            && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -250,7 +279,8 @@ public class FFRoomBkupController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    System.out.println(
+                            "Cannot get Entity FFRoomBkupEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -266,30 +296,75 @@ public class FFRoomBkupController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            e.printStackTrace();
+            System.out.println(
+                    "Cannot get Entity FFRoomBkupEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;        
+        old = null;
     }
-    /**
-     * Updates multiple {@link FFRoomBkupEntity}s.
-     * @param entities the list of {@link FFRoomBkupEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFRoomBkupEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFRoomBkupEntity>> update(
-            @RequestBody final List<FFRoomBkupEntity> entities) {
-        List<Resource<FFRoomBkupEntity>> resources = new ArrayList<Resource<FFRoomBkupEntity>>();
-        Iterator<FFRoomBkupEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
+    private void setTextIdFromRepository(
+            final FFRoomBkupEntity entity) {
+        FFTextEntity memberEntity = null;
+        List<Resource<FFTextEntity>> list = null;
+        try {
+            Method method = null;
+            Field field = null;
+            try {
+                method = FFTextController.class.getDeclaredMethod(
+                        "getByName", new Class[] { String.class });
+                field = FFTextEntity.class.getDeclaredField("name");
+            } catch (NoSuchMethodException | NoSuchFieldException e) {}
+            if (method != null
+                    && field != null) {
+                field.setAccessible(true);
+                if (field.get(entity.getText()) != null) {
+                    list = (List<Resource<FFTextEntity>>) method
+                            .invoke(
+                                    FFTextController.getInstance(),
+                                    (String) field
+                                            .get(entity.getText()));
+                }
+            }
+            if (list == null) {
+                try {
+                    method = FFTextController.class.getDeclaredMethod(
+                            "getByCode", new Class[] { String.class });
+                    field = FFTextEntity.class
+                            .getDeclaredField("code");
+                } catch (NoSuchMethodException | NoSuchFieldException e) {}
+                if (method != null
+                        && field != null) {
+                    field.setAccessible(true);
+                    if (field.get(entity.getText()) != null) {
+                        list = (List<Resource<FFTextEntity>>) method
+                                .invoke(FFTextController
+                                        .getInstance(), (String) field.get(
+                                                entity.getText()));
+                    }
+                }
+            }
+            method = null;
+            field = null;
+        } catch (SecurityException | IllegalArgumentException
+                | IllegalAccessException
+                | InvocationTargetException e) {}
+        if (list != null
+                && !list.isEmpty()) {
+            memberEntity = list.get(0).getContent();
         }
-        iter = null;
-        return resources;
+        if (memberEntity == null) {
+            memberEntity = (FFTextEntity) ((Resource) FFTextController
+                    .getInstance().save(
+                            entity.getText())
+                    .get(0)).getContent();
+        }
+        entity.setText(memberEntity);
+        list = null;
     }
+
     /**
      * Updates a single {@link FFRoomBkupEntity}.
      * @param entity the {@link FFRoomBkupEntity} instance
@@ -297,7 +372,8 @@ public class FFRoomBkupController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     public List<Resource<FFRoomBkupEntity>> update(
-            @RequestBody final FFRoomBkupEntity entity) {        
+            @RequestBody
+            final FFRoomBkupEntity entity) {
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
@@ -308,18 +384,20 @@ public class FFRoomBkupController {
                 List<Resource<FFDoorEntity>> list = null;
                 try {
                     Method method = null;
-          try {
-            method = FFDoorController.class.getDeclaredMethod(
-                "getByName", new Class[] { String.class });
-          } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
+                    try {
+                        method = FFDoorController.class.getDeclaredMethod(
+                                "getByName", new Class[] { String.class });
+                    } catch (NoSuchMethodException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFDoorEntity from Controller by name");
                     }
                     Field field = null;
-          try {
-            field = FFDoorEntity.class
-                .getDeclaredField("name");
-          } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
+                    try {
+                        field = FFDoorEntity.class
+                                .getDeclaredField("name");
+                    } catch (NoSuchFieldException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFDoorEntity from class by name");
                     }
                     if (method != null
                             && field != null) {
@@ -328,22 +406,25 @@ public class FFRoomBkupController {
                             list = (List<Resource<FFDoorEntity>>) method
                                     .invoke(
                                             FFDoorController.getInstance(),
-                                            (String) field.get(entity.getDoors().get(i)));
+                                            (String) field.get(
+                                                    entity.getDoors().get(i)));
                         }
                     }
                     if (list == null) {
-            try {
-              method = FFDoorController.class.getDeclaredMethod(
-                  "getByCode", new Class[] { String.class });
-            } catch (NoSuchMethodException e) {
-              e.printStackTrace();
-            }
-            try {
-              field = FFDoorEntity.class.getDeclaredField(
-                  "code");
-            } catch (NoSuchFieldException e) {
-              e.printStackTrace();
-            }
+                        try {
+                            method = FFDoorController.class.getDeclaredMethod(
+                                    "getByCode", new Class[] { String.class });
+                        } catch (NoSuchMethodException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFDoorEntity from Controller by code");
+                        }
+                        try {
+                            field = FFDoorEntity.class.getDeclaredField(
+                                    "code");
+                        } catch (NoSuchFieldException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFDoorEntity from class by code");
+                        }
                         if (method != null
                                 && field != null) {
                             field.setAccessible(true);
@@ -353,7 +434,8 @@ public class FFRoomBkupController {
                                                 FFDoorController
                                                         .getInstance(),
                                                 (String) field
-                                                        .get(entity.getDoors().get(i)));
+                                                        .get(entity.getDoors()
+                                                                .get(i)));
                             }
                         }
                     }
@@ -362,7 +444,8 @@ public class FFRoomBkupController {
                 } catch (SecurityException | IllegalArgumentException
                         | IllegalAccessException
                         | InvocationTargetException e) {
-                    e.printStackTrace();
+                    System.out.println(
+                            "CANNOT get embedded lookup Entity FFDoorEntity by name or code");
                 }
                 if (list != null
                         && !list.isEmpty()) {
@@ -371,7 +454,8 @@ public class FFRoomBkupController {
                 if (doors == null) {
                     doors = (FFDoorEntity) ((Resource) FFDoorController
                             .getInstance()
-                            .save(entity.getDoors().get(i)).get(0)).getContent();
+                            .save(entity.getDoors().get(i)).get(0))
+                                    .getContent();
                 }
                 entity.getDoors().set(i, doors);
                 list = null;
@@ -379,12 +463,10 @@ public class FFRoomBkupController {
         }
 
         if (entity.getText() != null
-        && entity.getText().getId() == null) {
-      setTextIdFromRepository(entity);
+                && entity.getText().getId() == null) {
+            setTextIdFromRepository(entity);
         }
 
-
-    
         FFRoomBkupEntity savedEntity = repository.save(entity);
         List<Resource<FFRoomBkupEntity>> list = getById(
                 savedEntity.getId());
@@ -392,84 +474,20 @@ public class FFRoomBkupController {
         return list;
     }
 
-  private void setTextIdFromRepository(
-      final FFRoomBkupEntity entity) {
-    FFTextEntity memberEntity = null;
-    List<Resource<FFTextEntity>> list = null;
-    try {
-      Method method = null;
-      Field field = null;
-      try {
-        method = FFTextController.class.getDeclaredMethod(
-            "getByName", new Class[] { String.class });
-        field = FFTextEntity.class.getDeclaredField("name");
-      } catch (NoSuchMethodException | NoSuchFieldException e) {
-      }
-      if (method != null
-          && field != null) {
-        field.setAccessible(true);
-        if (field.get(entity.getText()) != null) {
-          list = (List<Resource<FFTextEntity>>) method
-              .invoke(
-                  FFTextController.getInstance(),
-                  (String) field
-                      .get(entity.getText()));
-        }
-      }
-      if (list == null) {
-        try {
-          method = FFTextController.class.getDeclaredMethod(
-              "getByCode", new Class[] { String.class });
-          field = FFTextEntity.class
-              .getDeclaredField("code");
-        } catch (NoSuchMethodException | NoSuchFieldException e) {
-        }
-        if (method != null
-            && field != null) {
-          field.setAccessible(true);
-          if (field.get(entity.getText()) != null) {
-            list = (List<Resource<FFTextEntity>>)
-                method.invoke(FFTextController
-                    .getInstance(),(String) field.get(
-                        entity.getText()));
-          }
-        }
-      }
-      method = null;
-      field = null;
-    } catch (SecurityException | IllegalArgumentException
-        | IllegalAccessException
-        | InvocationTargetException e) {
-    }
-    if (list != null
-        && !list.isEmpty()) {
-      memberEntity = list.get(0).getContent();
-    }
-    if (memberEntity == null) {
-      memberEntity = (FFTextEntity)
-          ((Resource) FFTextController.getInstance().save(
-              entity.getText()).get(0)).getContent();
-    }
-    entity.setText(memberEntity);
-    list = null;
-    }
-
-
     /**
-     * Gets a list of {@link FFRoomBkupEntity}s that share a code.
-     * @param code the room_bkup' code
+     * Updates multiple {@link FFRoomBkupEntity}s.
+     * @param entities the list of {@link FFRoomBkupEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFRoomBkupEntity}>>
      */
-    @RequestMapping(path = "code/{code}",
-            method = RequestMethod.GET)
-    public List<Resource<FFRoomBkupEntity>> getByCode(
-            @PathVariable final String code) {
-        Iterator<FFRoomBkupEntity> iter = repository.findByCode(code)
-                .iterator();
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFRoomBkupEntity>> update(
+            @RequestBody
+            final List<FFRoomBkupEntity> entities) {
         List<Resource<FFRoomBkupEntity>> resources =
                 new ArrayList<Resource<FFRoomBkupEntity>>();
+        Iterator<FFRoomBkupEntity> iter = entities.iterator();
         while (iter.hasNext()) {
-            resources.add(getRoomBkupResource(iter.next()));
+            resources.add(update(iter.next()).get(0));
         }
         iter = null;
         return resources;

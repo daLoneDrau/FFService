@@ -8,17 +8,15 @@ import org.springframework.stereotype.Repository;
 import com.osrapi.models.ff.FFScriptBundleEntity;
 
 /**
- *
  * @author drau
- *
  */
 @Repository
 public interface FFScriptBundleRepository
-extends CrudRepository<FFScriptBundleEntity, Long> {
-	/**
-	 * Retrieves a list of script bundles by their name.
-	 * @param name the name
-	 * @return {@link List}<{@link FFScriptBundleEntity}>
-	 */
-	List<FFScriptBundleEntity> findByName(String name);
+        extends CrudRepository<FFScriptBundleEntity, Long> {
+    /**
+     * Retrieves a list of script bundles by their name.
+     * @param name the name
+     * @return {@link List}<{@link FFScriptBundleEntity}>
+     */
+    List<FFScriptBundleEntity> findByName(String name);
 }

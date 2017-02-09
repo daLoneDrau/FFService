@@ -1,35 +1,13 @@
 package com.osrapi.models.ff;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.MapKeyJoinColumn;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,17 +25,27 @@ public final class FFTextEntity {
     @Id
     @Column(name = "text_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
-  generator = "text_seq")
+            generator = "text_seq")
     @SequenceGenerator(
-        name = "text_seq",
-        sequenceName = "ff.text_id_seq",
-        allocationSize = 1
-    )
-    private Long                    id;
+            name = "text_seq",
+            sequenceName = "ff.text_id_seq",
+            allocationSize = 1)
+    private Long id;
+    /** the name. */
+    @Column(name = "name")
+    @JsonProperty("name")
+    @NotNull
+    private String name;
+    /** the text. */
+    @Column(name = "text")
+    @JsonProperty("text")
+    @NotNull
+    private String text;
     /** Creates a new instance of {@link FFTextEntity}. */
     public FFTextEntity() {
         super();
     }
+
     /**
      * Gets the id.
      * @return {@link Long}
@@ -66,24 +54,33 @@ public final class FFTextEntity {
         return id;
     }
     /**
-     * Sets the id.
-     * @param val the new value
+     * Gets the name.
+     * @return {@link String}
      */
-    public void setId(final Long val) {
-        id = val;
+    public String getName() {
+        return name;
     }
-
-    /** the text. */
-    @Column(name = "text")
-    @JsonProperty("text")
-    @NotNull
-    private String                    text;
     /**
      * Gets the text.
      * @return {@link String}
      */
     public String getText() {
         return text;
+    }
+
+    /**
+     * Sets the id.
+     * @param val the new value
+     */
+    public void setId(final Long val) {
+        id = val;
+    }
+    /**
+     * Sets the name.
+     * @param val the new value
+     */
+    public void setName(final String val) {
+        name = val;
     }
     /**
      * Sets the text.
@@ -93,25 +90,4 @@ public final class FFTextEntity {
         text = val;
     }
 
-    /** the name. */
-    @Column(name = "name")
-    @JsonProperty("name")
-    @NotNull
-    private String                    name;
-    /**
-     * Gets the name.
-     * @return {@link String}
-     */
-    public String getName() {
-        return name;
-    }
-    /**
-     * Sets the name.
-     * @param val the new value
-     */
-    public void setName(final String val) {
-        name = val;
-    }
-
 }
-

@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.osrapi.models.ff.FFCommandEntity;
 import com.osrapi.models.ff.FFRoomEntity;
-
 import com.osrapi.repositories.ff.FFRoomRepository;
 
 /**
@@ -65,13 +65,34 @@ public class FFRoomController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFRoomEntity}s that share a code.
+     * @param code the room' code
+     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     */
+    @RequestMapping(path = "code/{code}",
+            method = RequestMethod.GET)
+    public List<Resource<FFRoomEntity>> getByCode(
+            @PathVariable
+            final String code) {
+        Iterator<FFRoomEntity> iter = repository.findByCode(code)
+                .iterator();
+        List<Resource<FFRoomEntity>> resources =
+                new ArrayList<Resource<FFRoomEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getRoomResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a single {@link FFRoomEntity}.
      * @param id the event type's id
      * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFRoomEntity>> getById(
-            @PathVariable final Long id) {
+            @PathVariable
+            final Long id) {
         FFRoomEntity entity = repository.findOne(id);
         List<Resource<FFRoomEntity>> resources =
                 new ArrayList<Resource<FFRoomEntity>>();
@@ -80,8 +101,7 @@ public class FFRoomController {
         return resources;
     }
     /**
-     * Gets a {@link Resource} instance with links for the
-     * {@link FFRoomEntity}.
+     * Gets a {@link Resource} instance with links for the {@link FFRoomEntity}.
      * @param entity the {@link FFRoomEntity}
      * @return {@link Resource}<{@link FFRoomEntity}>
      */
@@ -89,7 +109,7 @@ public class FFRoomController {
             final FFRoomEntity entity) {
         Resource<FFRoomEntity> resource =
                 new Resource<FFRoomEntity>(
-                entity);
+                        entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -98,13 +118,118 @@ public class FFRoomController {
         return resource;
     }
     /**
+     * Saves a single {@link FFRoomEntity}.
+     * @param entity the {@link FFRoomEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFRoomEntity>> save(
+            @RequestBody
+            final FFRoomEntity entity) {
+        if (entity.getCommands() != null
+                && !entity.getCommands().isEmpty()) {
+            for (int i = entity.getCommands().size() - 1; i >= 0; i--) {
+                FFCommandEntity commands = null;
+                List<Resource<FFCommandEntity>> list = null;
+                try {
+                    Method method = null;
+                    try {
+                        method = FFCommandController.class.getDeclaredMethod(
+                                "getByName", new Class[] { String.class });
+                    } catch (NoSuchMethodException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFCommandEntity from Controller by name");
+                    }
+                    Field field = null;
+                    try {
+                        field = FFCommandEntity.class
+                                .getDeclaredField("name");
+                    } catch (NoSuchFieldException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFCommandEntity from class by name");
+                    }
+                    if (method != null
+                            && field != null) {
+                        field.setAccessible(true);
+                        if (field.get(entity.getCommands().get(i)) != null) {
+                            list = (List<Resource<FFCommandEntity>>) method
+                                    .invoke(
+                                            FFCommandController.getInstance(),
+                                            (String) field.get(entity
+                                                    .getCommands().get(i)));
+                        }
+                    }
+                    if (list == null) {
+                        try {
+                            method = FFCommandController.class
+                                    .getDeclaredMethod(
+                                            "getByCode",
+                                            new Class[] { String.class });
+                        } catch (NoSuchMethodException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFCommandEntity from Controller by code");
+                        }
+                        try {
+                            field = FFCommandEntity.class.getDeclaredField(
+                                    "code");
+                        } catch (NoSuchFieldException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFCommandEntity from class by code");
+                        }
+                        if (method != null
+                                && field != null) {
+                            field.setAccessible(true);
+                            if (field
+                                    .get(entity.getCommands().get(i)) != null) {
+                                list = (List<Resource<FFCommandEntity>>) method
+                                        .invoke(
+                                                FFCommandController
+                                                        .getInstance(),
+                                                (String) field
+                                                        .get(entity
+                                                                .getCommands()
+                                                                .get(i)));
+                            }
+                        }
+                    }
+                    method = null;
+                    field = null;
+                } catch (SecurityException | IllegalArgumentException
+                        | IllegalAccessException
+                        | InvocationTargetException e) {
+                    System.out.println(
+                            "CANNOT get embedded lookup Entity FFCommandEntity by name or code");
+                }
+                if (list != null
+                        && !list.isEmpty()) {
+                    commands = list.get(0).getContent();
+                }
+                if (commands == null) {
+                    commands = (FFCommandEntity) ((Resource) FFCommandController
+                            .getInstance()
+                            .save(entity.getCommands().get(i)).get(0))
+                                    .getContent();
+                }
+                entity.getCommands().set(i, commands);
+                list = null;
+            }
+        }
+
+        FFRoomEntity savedEntity = repository.save(entity);
+        List<Resource<FFRoomEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+    /**
      * Saves multiple {@link FFRoomEntity}s.
      * @param entities the list of {@link FFRoomEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
     public List<Resource<FFRoomEntity>> save(
-            @RequestBody final List<FFRoomEntity> entities) {
+            @RequestBody
+            final List<FFRoomEntity> entities) {
         List<Resource<FFRoomEntity>> resources =
                 new ArrayList<Resource<FFRoomEntity>>();
         Iterator<FFRoomEntity> iter = entities.iterator();
@@ -113,22 +238,6 @@ public class FFRoomController {
         }
         iter = null;
         return resources;
-    }
-    /**
-     * Saves a single {@link FFRoomEntity}.
-     * @param entity the {@link FFRoomEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFRoomEntity>> save(
-            @RequestBody final FFRoomEntity entity) {
-    
-    
-        FFRoomEntity savedEntity = repository.save(entity);
-        List<Resource<FFRoomEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -146,19 +255,20 @@ public class FFRoomController {
                 field = FFRoomEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(
+                        "Cannot get Entity FFRoomEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFRoomEntity>) method.invoke(
-              repository, (String) field.get(entity));
+                            repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                    && old.size() > 1)) {
+                            && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -166,7 +276,8 @@ public class FFRoomController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    System.out.println(
+                            "Cannot get Entity FFRoomEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -182,29 +293,14 @@ public class FFRoomController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            e.printStackTrace();
+            System.out.println(
+                    "Cannot get Entity FFRoomEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;        
-    }
-    /**
-     * Updates multiple {@link FFRoomEntity}s.
-     * @param entities the list of {@link FFRoomEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFRoomEntity>> update(
-            @RequestBody final List<FFRoomEntity> entities) {
-        List<Resource<FFRoomEntity>> resources = new ArrayList<Resource<FFRoomEntity>>();
-        Iterator<FFRoomEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
-        }
-        iter = null;
-        return resources;
+        old = null;
     }
     /**
      * Updates a single {@link FFRoomEntity}.
@@ -213,12 +309,100 @@ public class FFRoomController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     public List<Resource<FFRoomEntity>> update(
-            @RequestBody final FFRoomEntity entity) {        
+            @RequestBody
+            final FFRoomEntity entity) {
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
-    
-    
+        if (entity.getCommands() != null
+                && !entity.getCommands().isEmpty()) {
+            for (int i = entity.getCommands().size() - 1; i >= 0; i--) {
+                FFCommandEntity commands = null;
+                List<Resource<FFCommandEntity>> list = null;
+                try {
+                    Method method = null;
+                    try {
+                        method = FFCommandController.class.getDeclaredMethod(
+                                "getByName", new Class[] { String.class });
+                    } catch (NoSuchMethodException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFCommandEntity from Controller by name");
+                    }
+                    Field field = null;
+                    try {
+                        field = FFCommandEntity.class
+                                .getDeclaredField("name");
+                    } catch (NoSuchFieldException e) {
+                        System.out.println(
+                                "Cannot get embedded lookup Entity FFCommandEntity from class by name");
+                    }
+                    if (method != null
+                            && field != null) {
+                        field.setAccessible(true);
+                        if (field.get(entity.getCommands().get(i)) != null) {
+                            list = (List<Resource<FFCommandEntity>>) method
+                                    .invoke(
+                                            FFCommandController.getInstance(),
+                                            (String) field.get(entity
+                                                    .getCommands().get(i)));
+                        }
+                    }
+                    if (list == null) {
+                        try {
+                            method = FFCommandController.class
+                                    .getDeclaredMethod(
+                                            "getByCode",
+                                            new Class[] { String.class });
+                        } catch (NoSuchMethodException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFCommandEntity from Controller by code");
+                        }
+                        try {
+                            field = FFCommandEntity.class.getDeclaredField(
+                                    "code");
+                        } catch (NoSuchFieldException e) {
+                            System.out.println(
+                                    "Cannot get embedded lookup Entity FFCommandEntity from class by code");
+                        }
+                        if (method != null
+                                && field != null) {
+                            field.setAccessible(true);
+                            if (field
+                                    .get(entity.getCommands().get(i)) != null) {
+                                list = (List<Resource<FFCommandEntity>>) method
+                                        .invoke(
+                                                FFCommandController
+                                                        .getInstance(),
+                                                (String) field
+                                                        .get(entity
+                                                                .getCommands()
+                                                                .get(i)));
+                            }
+                        }
+                    }
+                    method = null;
+                    field = null;
+                } catch (SecurityException | IllegalArgumentException
+                        | IllegalAccessException
+                        | InvocationTargetException e) {
+                    System.out.println(
+                            "CANNOT get embedded lookup Entity FFCommandEntity by name or code");
+                }
+                if (list != null
+                        && !list.isEmpty()) {
+                    commands = list.get(0).getContent();
+                }
+                if (commands == null) {
+                    commands = (FFCommandEntity) ((Resource) FFCommandController
+                            .getInstance()
+                            .save(entity.getCommands().get(i)).get(0))
+                                    .getContent();
+                }
+                entity.getCommands().set(i, commands);
+                list = null;
+            }
+        }
+
         FFRoomEntity savedEntity = repository.save(entity);
         List<Resource<FFRoomEntity>> list = getById(
                 savedEntity.getId());
@@ -227,20 +411,19 @@ public class FFRoomController {
     }
 
     /**
-     * Gets a list of {@link FFRoomEntity}s that share a code.
-     * @param code the room' code
+     * Updates multiple {@link FFRoomEntity}s.
+     * @param entities the list of {@link FFRoomEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFRoomEntity}>>
      */
-    @RequestMapping(path = "code/{code}",
-            method = RequestMethod.GET)
-    public List<Resource<FFRoomEntity>> getByCode(
-            @PathVariable final String code) {
-        Iterator<FFRoomEntity> iter = repository.findByCode(code)
-                .iterator();
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFRoomEntity>> update(
+            @RequestBody
+            final List<FFRoomEntity> entities) {
         List<Resource<FFRoomEntity>> resources =
                 new ArrayList<Resource<FFRoomEntity>>();
+        Iterator<FFRoomEntity> iter = entities.iterator();
         while (iter.hasNext()) {
-            resources.add(getRoomResource(iter.next()));
+            resources.add(update(iter.next()).get(0));
         }
         iter = null;
         return resources;

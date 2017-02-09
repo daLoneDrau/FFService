@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFScriptActionTypeEntity;
-
 import com.osrapi.repositories.ff.FFScriptActionTypeRepository;
 
 /**
@@ -65,13 +64,34 @@ public class FFScriptActionTypeController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFScriptActionTypeEntity}s that share a code.
+     * @param code the script_action_type' code
+     * @return {@link List}<{@link Resource}<{@link FFScriptActionTypeEntity}>>
+     */
+    @RequestMapping(path = "code/{code}",
+            method = RequestMethod.GET)
+    public List<Resource<FFScriptActionTypeEntity>> getByCode(
+            @PathVariable
+            final String code) {
+        Iterator<FFScriptActionTypeEntity> iter = repository.findByCode(code)
+                .iterator();
+        List<Resource<FFScriptActionTypeEntity>> resources =
+                new ArrayList<Resource<FFScriptActionTypeEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getScriptActionTypeResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a single {@link FFScriptActionTypeEntity}.
      * @param id the event type's id
      * @return {@link List}<{@link Resource}<{@link FFScriptActionTypeEntity}>>
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFScriptActionTypeEntity>> getById(
-            @PathVariable final Long id) {
+            @PathVariable
+            final Long id) {
         FFScriptActionTypeEntity entity = repository.findOne(id);
         List<Resource<FFScriptActionTypeEntity>> resources =
                 new ArrayList<Resource<FFScriptActionTypeEntity>>();
@@ -89,7 +109,7 @@ public class FFScriptActionTypeController {
             final FFScriptActionTypeEntity entity) {
         Resource<FFScriptActionTypeEntity> resource =
                 new Resource<FFScriptActionTypeEntity>(
-                entity);
+                        entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -98,13 +118,30 @@ public class FFScriptActionTypeController {
         return resource;
     }
     /**
+     * Saves a single {@link FFScriptActionTypeEntity}.
+     * @param entity the {@link FFScriptActionTypeEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFScriptActionTypeEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFScriptActionTypeEntity>> save(
+            @RequestBody
+            final FFScriptActionTypeEntity entity) {
+
+        FFScriptActionTypeEntity savedEntity = repository.save(entity);
+        List<Resource<FFScriptActionTypeEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+    /**
      * Saves multiple {@link FFScriptActionTypeEntity}s.
      * @param entities the list of {@link FFScriptActionTypeEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFScriptActionTypeEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
     public List<Resource<FFScriptActionTypeEntity>> save(
-            @RequestBody final List<FFScriptActionTypeEntity> entities) {
+            @RequestBody
+            final List<FFScriptActionTypeEntity> entities) {
         List<Resource<FFScriptActionTypeEntity>> resources =
                 new ArrayList<Resource<FFScriptActionTypeEntity>>();
         Iterator<FFScriptActionTypeEntity> iter = entities.iterator();
@@ -113,22 +150,6 @@ public class FFScriptActionTypeController {
         }
         iter = null;
         return resources;
-    }
-    /**
-     * Saves a single {@link FFScriptActionTypeEntity}.
-     * @param entity the {@link FFScriptActionTypeEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFScriptActionTypeEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFScriptActionTypeEntity>> save(
-            @RequestBody final FFScriptActionTypeEntity entity) {
-    
-    
-        FFScriptActionTypeEntity savedEntity = repository.save(entity);
-        List<Resource<FFScriptActionTypeEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -146,19 +167,20 @@ public class FFScriptActionTypeController {
                 field = FFScriptActionTypeEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(
+                        "Cannot get Entity FFScriptActionTypeEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFScriptActionTypeEntity>) method.invoke(
-              repository, (String) field.get(entity));
+                            repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                    && old.size() > 1)) {
+                            && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -166,7 +188,8 @@ public class FFScriptActionTypeController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    System.out.println(
+                            "Cannot get Entity FFScriptActionTypeEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -182,29 +205,14 @@ public class FFScriptActionTypeController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            e.printStackTrace();
+            System.out.println(
+                    "Cannot get Entity FFScriptActionTypeEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;        
-    }
-    /**
-     * Updates multiple {@link FFScriptActionTypeEntity}s.
-     * @param entities the list of {@link FFScriptActionTypeEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFScriptActionTypeEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFScriptActionTypeEntity>> update(
-            @RequestBody final List<FFScriptActionTypeEntity> entities) {
-        List<Resource<FFScriptActionTypeEntity>> resources = new ArrayList<Resource<FFScriptActionTypeEntity>>();
-        Iterator<FFScriptActionTypeEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
-        }
-        iter = null;
-        return resources;
+        old = null;
     }
     /**
      * Updates a single {@link FFScriptActionTypeEntity}.
@@ -213,12 +221,12 @@ public class FFScriptActionTypeController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     public List<Resource<FFScriptActionTypeEntity>> update(
-            @RequestBody final FFScriptActionTypeEntity entity) {        
+            @RequestBody
+            final FFScriptActionTypeEntity entity) {
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
-    
-    
+
         FFScriptActionTypeEntity savedEntity = repository.save(entity);
         List<Resource<FFScriptActionTypeEntity>> list = getById(
                 savedEntity.getId());
@@ -227,20 +235,19 @@ public class FFScriptActionTypeController {
     }
 
     /**
-     * Gets a list of {@link FFScriptActionTypeEntity}s that share a code.
-     * @param code the script_action_type' code
+     * Updates multiple {@link FFScriptActionTypeEntity}s.
+     * @param entities the list of {@link FFScriptActionTypeEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFScriptActionTypeEntity}>>
      */
-    @RequestMapping(path = "code/{code}",
-            method = RequestMethod.GET)
-    public List<Resource<FFScriptActionTypeEntity>> getByCode(
-            @PathVariable final String code) {
-        Iterator<FFScriptActionTypeEntity> iter = repository.findByCode(code)
-                .iterator();
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFScriptActionTypeEntity>> update(
+            @RequestBody
+            final List<FFScriptActionTypeEntity> entities) {
         List<Resource<FFScriptActionTypeEntity>> resources =
                 new ArrayList<Resource<FFScriptActionTypeEntity>>();
+        Iterator<FFScriptActionTypeEntity> iter = entities.iterator();
         while (iter.hasNext()) {
-            resources.add(getScriptActionTypeResource(iter.next()));
+            resources.add(update(iter.next()).get(0));
         }
         iter = null;
         return resources;
