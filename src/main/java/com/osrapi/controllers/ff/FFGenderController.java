@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFGenderEntity;
+
 import com.osrapi.repositories.ff.FFGenderRepository;
 
 /**
@@ -64,60 +65,18 @@ public class FFGenderController {
         return resources;
     }
     /**
-     * Gets a list of {@link FFGenderEntity}s that share a description.
-     * @param description the gender' description
-     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
-     */
-    @RequestMapping(path = "description/{description}",
-            method = RequestMethod.GET)
-    public List<Resource<FFGenderEntity>> getByDescription(
-            @PathVariable
-            final String description) {
-        Iterator<FFGenderEntity> iter =
-                repository.findByDescription(description)
-                        .iterator();
-        List<Resource<FFGenderEntity>> resources =
-                new ArrayList<Resource<FFGenderEntity>>();
-        while (iter.hasNext()) {
-            resources.add(getGenderResource(iter.next()));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
      * Gets a single {@link FFGenderEntity}.
      * @param id the event type's id
      * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFGenderEntity>> getById(
-            @PathVariable
-            final Long id) {
+            @PathVariable final Long id) {
         FFGenderEntity entity = repository.findOne(id);
         List<Resource<FFGenderEntity>> resources =
                 new ArrayList<Resource<FFGenderEntity>>();
         resources.add(getGenderResource(entity));
         entity = null;
-        return resources;
-    }
-    /**
-     * Gets a list of {@link FFGenderEntity}s that share a name.
-     * @param name the gender' name
-     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
-     */
-    @RequestMapping(path = "name/{name}",
-            method = RequestMethod.GET)
-    public List<Resource<FFGenderEntity>> getByName(
-            @PathVariable
-            final String name) {
-        Iterator<FFGenderEntity> iter = repository.findByName(name)
-                .iterator();
-        List<Resource<FFGenderEntity>> resources =
-                new ArrayList<Resource<FFGenderEntity>>();
-        while (iter.hasNext()) {
-            resources.add(getGenderResource(iter.next()));
-        }
-        iter = null;
         return resources;
     }
     /**
@@ -130,7 +89,7 @@ public class FFGenderController {
             final FFGenderEntity entity) {
         Resource<FFGenderEntity> resource =
                 new Resource<FFGenderEntity>(
-                        entity);
+                entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -139,30 +98,13 @@ public class FFGenderController {
         return resource;
     }
     /**
-     * Saves a single {@link FFGenderEntity}.
-     * @param entity the {@link FFGenderEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFGenderEntity>> save(
-            @RequestBody
-            final FFGenderEntity entity) {
-
-        FFGenderEntity savedEntity = repository.save(entity);
-        List<Resource<FFGenderEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-    /**
      * Saves multiple {@link FFGenderEntity}s.
      * @param entities the list of {@link FFGenderEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
     public List<Resource<FFGenderEntity>> save(
-            @RequestBody
-            final List<FFGenderEntity> entities) {
+            @RequestBody final List<FFGenderEntity> entities) {
         List<Resource<FFGenderEntity>> resources =
                 new ArrayList<Resource<FFGenderEntity>>();
         Iterator<FFGenderEntity> iter = entities.iterator();
@@ -171,6 +113,22 @@ public class FFGenderController {
         }
         iter = null;
         return resources;
+    }
+    /**
+     * Saves a single {@link FFGenderEntity}.
+     * @param entity the {@link FFGenderEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFGenderEntity>> save(
+            @RequestBody final FFGenderEntity entity) {
+    
+    
+        FFGenderEntity savedEntity = repository.save(entity);
+        List<Resource<FFGenderEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -188,20 +146,19 @@ public class FFGenderController {
                 field = FFGenderEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                System.out.println(
-                        "Cannot get Entity FFGenderEntity from Repository by name");
+                System.out.println("Cannot get Entity FFGenderEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFGenderEntity>) method.invoke(
-                            repository, (String) field.get(entity));
+              repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                            && old.size() > 1)) {
+                    && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -209,8 +166,7 @@ public class FFGenderController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    System.out.println(
-                            "Cannot get Entity FFGenderEntity from Repository by code");
+          System.out.println("Cannot get Entity FFGenderEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -226,34 +182,13 @@ public class FFGenderController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            System.out.println(
-                    "Cannot get Entity FFGenderEntity from Repository by name or code");
+                System.out.println("Cannot get Entity FFGenderEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;
-    }
-
-    /**
-     * Updates a single {@link FFGenderEntity}.
-     * @param entity the {@link FFGenderEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.PUT)
-    public List<Resource<FFGenderEntity>> update(
-            @RequestBody
-            final FFGenderEntity entity) {
-        if (entity.getId() == null) {
-            setIdFromRepository(entity);
-        }
-
-        FFGenderEntity savedEntity = repository.save(entity);
-        List<Resource<FFGenderEntity>> list = getById(
-                savedEntity.getId());
-        savedEntity = null;
-        return list;
+        old = null;        
     }
     /**
      * Updates multiple {@link FFGenderEntity}s.
@@ -262,13 +197,69 @@ public class FFGenderController {
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
     public List<Resource<FFGenderEntity>> update(
-            @RequestBody
-            final List<FFGenderEntity> entities) {
-        List<Resource<FFGenderEntity>> resources =
-                new ArrayList<Resource<FFGenderEntity>>();
+            @RequestBody final List<FFGenderEntity> entities) {
+        List<Resource<FFGenderEntity>> resources = new ArrayList<Resource<FFGenderEntity>>();
         Iterator<FFGenderEntity> iter = entities.iterator();
         while (iter.hasNext()) {
             resources.add(update(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
+     * Updates a single {@link FFGenderEntity}.
+     * @param entity the {@link FFGenderEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.PUT)
+    public List<Resource<FFGenderEntity>> update(
+            @RequestBody final FFGenderEntity entity) {        
+        if (entity.getId() == null) {
+            setIdFromRepository(entity);
+        }
+    
+    
+        FFGenderEntity savedEntity = repository.save(entity);
+        List<Resource<FFGenderEntity>> list = getById(
+                savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+
+    /**
+     * Gets a list of {@link FFGenderEntity}s that share a description.
+     * @param description the gender' description
+     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
+     */
+    @RequestMapping(path = "description/{description}",
+            method = RequestMethod.GET)
+    public List<Resource<FFGenderEntity>> getByDescription(
+            @PathVariable final String description) {
+        Iterator<FFGenderEntity> iter = repository.findByDescription(description)
+                .iterator();
+        List<Resource<FFGenderEntity>> resources =
+                new ArrayList<Resource<FFGenderEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getGenderResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
+     * Gets a list of {@link FFGenderEntity}s that share a name.
+     * @param name the gender' name
+     * @return {@link List}<{@link Resource}<{@link FFGenderEntity}>>
+     */
+    @RequestMapping(path = "name/{name}",
+            method = RequestMethod.GET)
+    public List<Resource<FFGenderEntity>> getByName(
+            @PathVariable final String name) {
+        Iterator<FFGenderEntity> iter = repository.findByName(name)
+                .iterator();
+        List<Resource<FFGenderEntity>> resources =
+                new ArrayList<Resource<FFGenderEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getGenderResource(iter.next()));
         }
         iter = null;
         return resources;

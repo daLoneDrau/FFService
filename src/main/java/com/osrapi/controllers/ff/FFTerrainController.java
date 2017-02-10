@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFTerrainEntity;
+
 import com.osrapi.repositories.ff.FFTerrainRepository;
 
 /**
@@ -70,33 +71,12 @@ public class FFTerrainController {
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFTerrainEntity>> getById(
-            @PathVariable
-            final Long id) {
+            @PathVariable final Long id) {
         FFTerrainEntity entity = repository.findOne(id);
         List<Resource<FFTerrainEntity>> resources =
                 new ArrayList<Resource<FFTerrainEntity>>();
         resources.add(getTerrainResource(entity));
         entity = null;
-        return resources;
-    }
-    /**
-     * Gets a list of {@link FFTerrainEntity}s that share a name.
-     * @param name the terrain' name
-     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
-     */
-    @RequestMapping(path = "name/{name}",
-            method = RequestMethod.GET)
-    public List<Resource<FFTerrainEntity>> getByName(
-            @PathVariable
-            final String name) {
-        Iterator<FFTerrainEntity> iter = repository.findByName(name)
-                .iterator();
-        List<Resource<FFTerrainEntity>> resources =
-                new ArrayList<Resource<FFTerrainEntity>>();
-        while (iter.hasNext()) {
-            resources.add(getTerrainResource(iter.next()));
-        }
-        iter = null;
         return resources;
     }
     /**
@@ -109,7 +89,7 @@ public class FFTerrainController {
             final FFTerrainEntity entity) {
         Resource<FFTerrainEntity> resource =
                 new Resource<FFTerrainEntity>(
-                        entity);
+                entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -118,30 +98,13 @@ public class FFTerrainController {
         return resource;
     }
     /**
-     * Saves a single {@link FFTerrainEntity}.
-     * @param entity the {@link FFTerrainEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFTerrainEntity>> save(
-            @RequestBody
-            final FFTerrainEntity entity) {
-
-        FFTerrainEntity savedEntity = repository.save(entity);
-        List<Resource<FFTerrainEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-    /**
      * Saves multiple {@link FFTerrainEntity}s.
      * @param entities the list of {@link FFTerrainEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
     public List<Resource<FFTerrainEntity>> save(
-            @RequestBody
-            final List<FFTerrainEntity> entities) {
+            @RequestBody final List<FFTerrainEntity> entities) {
         List<Resource<FFTerrainEntity>> resources =
                 new ArrayList<Resource<FFTerrainEntity>>();
         Iterator<FFTerrainEntity> iter = entities.iterator();
@@ -150,6 +113,22 @@ public class FFTerrainController {
         }
         iter = null;
         return resources;
+    }
+    /**
+     * Saves a single {@link FFTerrainEntity}.
+     * @param entity the {@link FFTerrainEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFTerrainEntity>> save(
+            @RequestBody final FFTerrainEntity entity) {
+    
+    
+        FFTerrainEntity savedEntity = repository.save(entity);
+        List<Resource<FFTerrainEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -167,20 +146,19 @@ public class FFTerrainController {
                 field = FFTerrainEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                System.out.println(
-                        "Cannot get Entity FFTerrainEntity from Repository by name");
+                System.out.println("Cannot get Entity FFTerrainEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFTerrainEntity>) method.invoke(
-                            repository, (String) field.get(entity));
+              repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                            && old.size() > 1)) {
+                    && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -188,8 +166,7 @@ public class FFTerrainController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    System.out.println(
-                            "Cannot get Entity FFTerrainEntity from Repository by code");
+          System.out.println("Cannot get Entity FFTerrainEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -205,14 +182,29 @@ public class FFTerrainController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            System.out.println(
-                    "Cannot get Entity FFTerrainEntity from Repository by name or code");
+                System.out.println("Cannot get Entity FFTerrainEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;
+        old = null;        
+    }
+    /**
+     * Updates multiple {@link FFTerrainEntity}s.
+     * @param entities the list of {@link FFTerrainEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFTerrainEntity>> update(
+            @RequestBody final List<FFTerrainEntity> entities) {
+        List<Resource<FFTerrainEntity>> resources = new ArrayList<Resource<FFTerrainEntity>>();
+        Iterator<FFTerrainEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(update(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
     }
     /**
      * Updates a single {@link FFTerrainEntity}.
@@ -221,12 +213,12 @@ public class FFTerrainController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     public List<Resource<FFTerrainEntity>> update(
-            @RequestBody
-            final FFTerrainEntity entity) {
+            @RequestBody final FFTerrainEntity entity) {        
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
-
+    
+    
         FFTerrainEntity savedEntity = repository.save(entity);
         List<Resource<FFTerrainEntity>> list = getById(
                 savedEntity.getId());
@@ -235,19 +227,20 @@ public class FFTerrainController {
     }
 
     /**
-     * Updates multiple {@link FFTerrainEntity}s.
-     * @param entities the list of {@link FFTerrainEntity} instances
+     * Gets a list of {@link FFTerrainEntity}s that share a name.
+     * @param name the terrain' name
      * @return {@link List}<{@link Resource}<{@link FFTerrainEntity}>>
      */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFTerrainEntity>> update(
-            @RequestBody
-            final List<FFTerrainEntity> entities) {
+    @RequestMapping(path = "name/{name}",
+            method = RequestMethod.GET)
+    public List<Resource<FFTerrainEntity>> getByName(
+            @PathVariable final String name) {
+        Iterator<FFTerrainEntity> iter = repository.findByName(name)
+                .iterator();
         List<Resource<FFTerrainEntity>> resources =
                 new ArrayList<Resource<FFTerrainEntity>>();
-        Iterator<FFTerrainEntity> iter = entities.iterator();
         while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
+            resources.add(getTerrainResource(iter.next()));
         }
         iter = null;
         return resources;

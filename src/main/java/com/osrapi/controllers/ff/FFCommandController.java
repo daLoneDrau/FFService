@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFCommandEntity;
+
 import com.osrapi.repositories.ff.FFCommandRepository;
 
 /**
@@ -70,8 +71,7 @@ public class FFCommandController {
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFCommandEntity>> getById(
-            @PathVariable
-            final Long id) {
+            @PathVariable final Long id) {
         FFCommandEntity entity = repository.findOne(id);
         List<Resource<FFCommandEntity>> resources =
                 new ArrayList<Resource<FFCommandEntity>>();
@@ -80,6 +80,153 @@ public class FFCommandController {
         return resources;
     }
     /**
+     * Gets a {@link Resource} instance with links for the
+     * {@link FFCommandEntity}.
+     * @param entity the {@link FFCommandEntity}
+     * @return {@link Resource}<{@link FFCommandEntity}>
+     */
+    private Resource<FFCommandEntity> getCommandResource(
+            final FFCommandEntity entity) {
+        Resource<FFCommandEntity> resource =
+                new Resource<FFCommandEntity>(
+                entity);
+        // link to entity
+        resource.add(ControllerLinkBuilder.linkTo(
+                ControllerLinkBuilder.methodOn(getClass()).getById(
+                        entity.getId()))
+                .withSelfRel());
+        return resource;
+    }
+    /**
+     * Saves multiple {@link FFCommandEntity}s.
+     * @param entities the list of {@link FFCommandEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.POST)
+    public List<Resource<FFCommandEntity>> save(
+            @RequestBody final List<FFCommandEntity> entities) {
+        List<Resource<FFCommandEntity>> resources =
+                new ArrayList<Resource<FFCommandEntity>>();
+        Iterator<FFCommandEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(save(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
+     * Saves a single {@link FFCommandEntity}.
+     * @param entity the {@link FFCommandEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFCommandEntity>> save(
+            @RequestBody final FFCommandEntity entity) {
+    
+    
+        FFCommandEntity savedEntity = repository.save(entity);
+        List<Resource<FFCommandEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+    /**
+     * Tries to set the Id for an entity to be saved by locating it in the
+     * repository.
+     * @param entity the {@link FFCommandEntity} instance
+     */
+    private void setIdFromRepository(final FFCommandEntity entity) {
+        List<FFCommandEntity> old = null;
+        try {
+            Method method = null;
+            Field field = null;
+            try {
+                method = repository.getClass().getDeclaredMethod(
+                        "findByName", new Class[] { String.class });
+                field = FFCommandEntity.class.getDeclaredField("name");
+            } catch (NoSuchMethodException | NoSuchFieldException e) {
+                // TODO Auto-generated catch block
+                System.out.println("Cannot get Entity FFCommandEntity from Repository by name");
+            }
+            if (method != null
+                    && field != null) {
+                field.setAccessible(true);
+                if (field.get(entity) != null) {
+                    old = (List<FFCommandEntity>) method.invoke(
+              repository, (String) field.get(entity));
+                }
+            }
+            if (old == null
+                    || (old != null
+                    && old.size() > 1)) {
+                try {
+                    method = repository.getClass().getDeclaredMethod(
+                            "findByCode", new Class[] { String.class });
+                    field = FFCommandEntity.class.getDeclaredField(
+                            "code");
+                } catch (NoSuchMethodException | NoSuchFieldException e) {
+                    // TODO Auto-generated catch block
+          System.out.println("Cannot get Entity FFCommandEntity from Repository by code");
+                }
+                if (method != null
+                        && field != null) {
+                    field.setAccessible(true);
+                    if (field.get(entity) != null) {
+                        old = (List<FFCommandEntity>) method.invoke(
+                                repository, (String) field.get(entity));
+                    }
+                }
+            }
+            method = null;
+            field = null;
+        } catch (SecurityException | IllegalArgumentException
+                | IllegalAccessException
+                | InvocationTargetException e) {
+                System.out.println("Cannot get Entity FFCommandEntity from Repository by name or code");
+        }
+        if (old != null
+                && old.size() == 1) {
+            entity.setId(old.get(0).getId());
+        }
+        old = null;        
+    }
+    /**
+     * Updates multiple {@link FFCommandEntity}s.
+     * @param entities the list of {@link FFCommandEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFCommandEntity>> update(
+            @RequestBody final List<FFCommandEntity> entities) {
+        List<Resource<FFCommandEntity>> resources = new ArrayList<Resource<FFCommandEntity>>();
+        Iterator<FFCommandEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(update(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
+     * Updates a single {@link FFCommandEntity}.
+     * @param entity the {@link FFCommandEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.PUT)
+    public List<Resource<FFCommandEntity>> update(
+            @RequestBody final FFCommandEntity entity) {        
+        if (entity.getId() == null) {
+            setIdFromRepository(entity);
+        }
+    
+    
+        FFCommandEntity savedEntity = repository.save(entity);
+        List<Resource<FFCommandEntity>> list = getById(
+                savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+
+    /**
      * Gets a list of {@link FFCommandEntity}s that share a name.
      * @param name the command' name
      * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
@@ -87,8 +234,7 @@ public class FFCommandController {
     @RequestMapping(path = "name/{name}",
             method = RequestMethod.GET)
     public List<Resource<FFCommandEntity>> getByName(
-            @PathVariable
-            final String name) {
+            @PathVariable final String name) {
         Iterator<FFCommandEntity> iter = repository.findByName(name)
                 .iterator();
         List<Resource<FFCommandEntity>> resources =
@@ -107,167 +253,13 @@ public class FFCommandController {
     @RequestMapping(path = "sort_order/{sortOrder}",
             method = RequestMethod.GET)
     public List<Resource<FFCommandEntity>> getBySortOrder(
-            @PathVariable
-            final Long sortOrder) {
+            @PathVariable final Long sortOrder) {
         Iterator<FFCommandEntity> iter = repository.findBySortOrder(sortOrder)
                 .iterator();
         List<Resource<FFCommandEntity>> resources =
                 new ArrayList<Resource<FFCommandEntity>>();
         while (iter.hasNext()) {
             resources.add(getCommandResource(iter.next()));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
-     * Gets a {@link Resource} instance with links for the
-     * {@link FFCommandEntity}.
-     * @param entity the {@link FFCommandEntity}
-     * @return {@link Resource}<{@link FFCommandEntity}>
-     */
-    private Resource<FFCommandEntity> getCommandResource(
-            final FFCommandEntity entity) {
-        Resource<FFCommandEntity> resource =
-                new Resource<FFCommandEntity>(
-                        entity);
-        // link to entity
-        resource.add(ControllerLinkBuilder.linkTo(
-                ControllerLinkBuilder.methodOn(getClass()).getById(
-                        entity.getId()))
-                .withSelfRel());
-        return resource;
-    }
-    /**
-     * Saves a single {@link FFCommandEntity}.
-     * @param entity the {@link FFCommandEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFCommandEntity>> save(
-            @RequestBody
-            final FFCommandEntity entity) {
-
-        FFCommandEntity savedEntity = repository.save(entity);
-        List<Resource<FFCommandEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-    /**
-     * Saves multiple {@link FFCommandEntity}s.
-     * @param entities the list of {@link FFCommandEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.POST)
-    public List<Resource<FFCommandEntity>> save(
-            @RequestBody
-            final List<FFCommandEntity> entities) {
-        List<Resource<FFCommandEntity>> resources =
-                new ArrayList<Resource<FFCommandEntity>>();
-        Iterator<FFCommandEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(save(iter.next()).get(0));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
-     * Tries to set the Id for an entity to be saved by locating it in the
-     * repository.
-     * @param entity the {@link FFCommandEntity} instance
-     */
-    private void setIdFromRepository(final FFCommandEntity entity) {
-        List<FFCommandEntity> old = null;
-        try {
-            Method method = null;
-            Field field = null;
-            try {
-                method = repository.getClass().getDeclaredMethod(
-                        "findByName", new Class[] { String.class });
-                field = FFCommandEntity.class.getDeclaredField("name");
-            } catch (NoSuchMethodException | NoSuchFieldException e) {
-                // TODO Auto-generated catch block
-                System.out.println(
-                        "Cannot get Entity FFCommandEntity from Repository by name");
-            }
-            if (method != null
-                    && field != null) {
-                field.setAccessible(true);
-                if (field.get(entity) != null) {
-                    old = (List<FFCommandEntity>) method.invoke(
-                            repository, (String) field.get(entity));
-                }
-            }
-            if (old == null
-                    || (old != null
-                            && old.size() > 1)) {
-                try {
-                    method = repository.getClass().getDeclaredMethod(
-                            "findByCode", new Class[] { String.class });
-                    field = FFCommandEntity.class.getDeclaredField(
-                            "code");
-                } catch (NoSuchMethodException | NoSuchFieldException e) {
-                    // TODO Auto-generated catch block
-                    System.out.println(
-                            "Cannot get Entity FFCommandEntity from Repository by code");
-                }
-                if (method != null
-                        && field != null) {
-                    field.setAccessible(true);
-                    if (field.get(entity) != null) {
-                        old = (List<FFCommandEntity>) method.invoke(
-                                repository, (String) field.get(entity));
-                    }
-                }
-            }
-            method = null;
-            field = null;
-        } catch (SecurityException | IllegalArgumentException
-                | IllegalAccessException
-                | InvocationTargetException e) {
-            System.out.println(
-                    "Cannot get Entity FFCommandEntity from Repository by name or code");
-        }
-        if (old != null
-                && old.size() == 1) {
-            entity.setId(old.get(0).getId());
-        }
-        old = null;
-    }
-
-    /**
-     * Updates a single {@link FFCommandEntity}.
-     * @param entity the {@link FFCommandEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.PUT)
-    public List<Resource<FFCommandEntity>> update(
-            @RequestBody
-            final FFCommandEntity entity) {
-        if (entity.getId() == null) {
-            setIdFromRepository(entity);
-        }
-
-        FFCommandEntity savedEntity = repository.save(entity);
-        List<Resource<FFCommandEntity>> list = getById(
-                savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-    /**
-     * Updates multiple {@link FFCommandEntity}s.
-     * @param entities the list of {@link FFCommandEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFCommandEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFCommandEntity>> update(
-            @RequestBody
-            final List<FFCommandEntity> entities) {
-        List<Resource<FFCommandEntity>> resources =
-                new ArrayList<Resource<FFCommandEntity>>();
-        Iterator<FFCommandEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
         }
         iter = null;
         return resources;

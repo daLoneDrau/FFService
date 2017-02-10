@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFPhysicalGraphNodeEntity;
 import com.osrapi.models.ff.FFTerrainEntity;
+
 import com.osrapi.repositories.ff.FFPhysicalGraphNodeRepository;
 
 /**
@@ -71,8 +72,7 @@ public class FFPhysicalGraphNodeController {
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFPhysicalGraphNodeEntity>> getById(
-            @PathVariable
-            final Long id) {
+            @PathVariable final Long id) {
         FFPhysicalGraphNodeEntity entity = repository.findOne(id);
         List<Resource<FFPhysicalGraphNodeEntity>> resources =
                 new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
@@ -81,19 +81,236 @@ public class FFPhysicalGraphNodeController {
         return resources;
     }
     /**
-     * Gets a list of {@link FFPhysicalGraphNodeEntity}s that share a
-     * isMainNode.
+     * Gets a {@link Resource} instance with links for the
+     * {@link FFPhysicalGraphNodeEntity}.
+     * @param entity the {@link FFPhysicalGraphNodeEntity}
+     * @return {@link Resource}<{@link FFPhysicalGraphNodeEntity}>
+     */
+    private Resource<FFPhysicalGraphNodeEntity> getPhysicalGraphNodeResource(
+            final FFPhysicalGraphNodeEntity entity) {
+        Resource<FFPhysicalGraphNodeEntity> resource =
+                new Resource<FFPhysicalGraphNodeEntity>(
+                entity);
+        // link to entity
+        resource.add(ControllerLinkBuilder.linkTo(
+                ControllerLinkBuilder.methodOn(getClass()).getById(
+                        entity.getId()))
+                .withSelfRel());
+        return resource;
+    }
+    /**
+     * Saves multiple {@link FFPhysicalGraphNodeEntity}s.
+     * @param entities the list of {@link FFPhysicalGraphNodeEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.POST)
+    public List<Resource<FFPhysicalGraphNodeEntity>> save(
+            @RequestBody final List<FFPhysicalGraphNodeEntity> entities) {
+        List<Resource<FFPhysicalGraphNodeEntity>> resources =
+                new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
+        Iterator<FFPhysicalGraphNodeEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(save(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
+     * Saves a single {@link FFPhysicalGraphNodeEntity}.
+     * @param entity the {@link FFPhysicalGraphNodeEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFPhysicalGraphNodeEntity>> save(
+            @RequestBody final FFPhysicalGraphNodeEntity entity) {
+            if (entity.getTerrain() != null
+        && entity.getTerrain().getId() == null) {
+      setTerrainIdFromRepository(entity);
+        }
+
+
+    
+        FFPhysicalGraphNodeEntity savedEntity = repository.save(entity);
+        List<Resource<FFPhysicalGraphNodeEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+    /**
+     * Tries to set the Id for an entity to be saved by locating it in the
+     * repository.
+     * @param entity the {@link FFPhysicalGraphNodeEntity} instance
+     */
+    private void setIdFromRepository(final FFPhysicalGraphNodeEntity entity) {
+        List<FFPhysicalGraphNodeEntity> old = null;
+        try {
+            Method method = null;
+            Field field = null;
+            try {
+                method = repository.getClass().getDeclaredMethod(
+                        "findByName", new Class[] { String.class });
+                field = FFPhysicalGraphNodeEntity.class.getDeclaredField("name");
+            } catch (NoSuchMethodException | NoSuchFieldException e) {
+                // TODO Auto-generated catch block
+                System.out.println("Cannot get Entity FFPhysicalGraphNodeEntity from Repository by name");
+            }
+            if (method != null
+                    && field != null) {
+                field.setAccessible(true);
+                if (field.get(entity) != null) {
+                    old = (List<FFPhysicalGraphNodeEntity>) method.invoke(
+              repository, (String) field.get(entity));
+                }
+            }
+            if (old == null
+                    || (old != null
+                    && old.size() > 1)) {
+                try {
+                    method = repository.getClass().getDeclaredMethod(
+                            "findByCode", new Class[] { String.class });
+                    field = FFPhysicalGraphNodeEntity.class.getDeclaredField(
+                            "code");
+                } catch (NoSuchMethodException | NoSuchFieldException e) {
+                    // TODO Auto-generated catch block
+          System.out.println("Cannot get Entity FFPhysicalGraphNodeEntity from Repository by code");
+                }
+                if (method != null
+                        && field != null) {
+                    field.setAccessible(true);
+                    if (field.get(entity) != null) {
+                        old = (List<FFPhysicalGraphNodeEntity>) method.invoke(
+                                repository, (String) field.get(entity));
+                    }
+                }
+            }
+            method = null;
+            field = null;
+        } catch (SecurityException | IllegalArgumentException
+                | IllegalAccessException
+                | InvocationTargetException e) {
+                System.out.println("Cannot get Entity FFPhysicalGraphNodeEntity from Repository by name or code");
+        }
+        if (old != null
+                && old.size() == 1) {
+            entity.setId(old.get(0).getId());
+        }
+        old = null;        
+    }
+    /**
+     * Updates multiple {@link FFPhysicalGraphNodeEntity}s.
+     * @param entities the list of {@link FFPhysicalGraphNodeEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFPhysicalGraphNodeEntity>> update(
+            @RequestBody final List<FFPhysicalGraphNodeEntity> entities) {
+        List<Resource<FFPhysicalGraphNodeEntity>> resources = new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
+        Iterator<FFPhysicalGraphNodeEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(update(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
+     * Updates a single {@link FFPhysicalGraphNodeEntity}.
+     * @param entity the {@link FFPhysicalGraphNodeEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.PUT)
+    public List<Resource<FFPhysicalGraphNodeEntity>> update(
+            @RequestBody final FFPhysicalGraphNodeEntity entity) {        
+        if (entity.getId() == null) {
+            setIdFromRepository(entity);
+        }
+            if (entity.getTerrain() != null
+        && entity.getTerrain().getId() == null) {
+      setTerrainIdFromRepository(entity);
+        }
+
+
+    
+        FFPhysicalGraphNodeEntity savedEntity = repository.save(entity);
+        List<Resource<FFPhysicalGraphNodeEntity>> list = getById(
+                savedEntity.getId());
+        savedEntity = null;
+        return list;
+    }
+
+  private void setTerrainIdFromRepository(
+      final FFPhysicalGraphNodeEntity entity) {
+    FFTerrainEntity memberEntity = null;
+    List<Resource<FFTerrainEntity>> list = null;
+    try {
+      Method method = null;
+      Field field = null;
+      try {
+        method = FFTerrainController.class.getDeclaredMethod(
+            "getByName", new Class[] { String.class });
+        field = FFTerrainEntity.class.getDeclaredField("name");
+      } catch (NoSuchMethodException | NoSuchFieldException e) {
+      }
+      if (method != null
+          && field != null) {
+        field.setAccessible(true);
+        if (field.get(entity.getTerrain()) != null) {
+          list = (List<Resource<FFTerrainEntity>>) method
+              .invoke(
+                  FFTerrainController.getInstance(),
+                  (String) field
+                      .get(entity.getTerrain()));
+        }
+      }
+      if (list == null) {
+        try {
+          method = FFTerrainController.class.getDeclaredMethod(
+              "getByCode", new Class[] { String.class });
+          field = FFTerrainEntity.class
+              .getDeclaredField("code");
+        } catch (NoSuchMethodException | NoSuchFieldException e) {
+        }
+        if (method != null
+            && field != null) {
+          field.setAccessible(true);
+          if (field.get(entity.getTerrain()) != null) {
+            list = (List<Resource<FFTerrainEntity>>)
+                method.invoke(FFTerrainController
+                    .getInstance(),(String) field.get(
+                        entity.getTerrain()));
+          }
+        }
+      }
+      method = null;
+      field = null;
+    } catch (SecurityException | IllegalArgumentException
+        | IllegalAccessException
+        | InvocationTargetException e) {
+    }
+    if (list != null
+        && !list.isEmpty()) {
+      memberEntity = list.get(0).getContent();
+    }
+    if (memberEntity == null) {
+      memberEntity = (FFTerrainEntity)
+          ((Resource) FFTerrainController.getInstance().save(
+              entity.getTerrain()).get(0)).getContent();
+    }
+    entity.setTerrain(memberEntity);
+    list = null;
+    }
+
+
+    /**
+     * Gets a list of {@link FFPhysicalGraphNodeEntity}s that share a isMainNode.
      * @param isMainNode the physical_graph_node' isMainNode
      * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
      */
     @RequestMapping(path = "is_main_node/{isMainNode}",
             method = RequestMethod.GET)
     public List<Resource<FFPhysicalGraphNodeEntity>> getByIsMainNode(
-            @PathVariable
-            final Boolean isMainNode) {
-        Iterator<FFPhysicalGraphNodeEntity> iter =
-                repository.findByIsMainNode(isMainNode)
-                        .iterator();
+            @PathVariable final Boolean isMainNode) {
+        Iterator<FFPhysicalGraphNodeEntity> iter = repository.findByIsMainNode(isMainNode)
+                .iterator();
         List<Resource<FFPhysicalGraphNodeEntity>> resources =
                 new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
         while (iter.hasNext()) {
@@ -103,19 +320,16 @@ public class FFPhysicalGraphNodeController {
         return resources;
     }
     /**
-     * Gets a list of {@link FFPhysicalGraphNodeEntity}s that share a
-     * roomNumber.
+     * Gets a list of {@link FFPhysicalGraphNodeEntity}s that share a roomNumber.
      * @param roomNumber the physical_graph_node' roomNumber
      * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
      */
     @RequestMapping(path = "room_number/{roomNumber}",
             method = RequestMethod.GET)
     public List<Resource<FFPhysicalGraphNodeEntity>> getByRoomNumber(
-            @PathVariable
-            final Long roomNumber) {
-        Iterator<FFPhysicalGraphNodeEntity> iter =
-                repository.findByRoomNumber(roomNumber)
-                        .iterator();
+            @PathVariable final Long roomNumber) {
+        Iterator<FFPhysicalGraphNodeEntity> iter = repository.findByRoomNumber(roomNumber)
+                .iterator();
         List<Resource<FFPhysicalGraphNodeEntity>> resources =
                 new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
         while (iter.hasNext()) {
@@ -132,8 +346,7 @@ public class FFPhysicalGraphNodeController {
     @RequestMapping(path = "x/{x}",
             method = RequestMethod.GET)
     public List<Resource<FFPhysicalGraphNodeEntity>> getByX(
-            @PathVariable
-            final Long x) {
+            @PathVariable final Long x) {
         Iterator<FFPhysicalGraphNodeEntity> iter = repository.findByX(x)
                 .iterator();
         List<Resource<FFPhysicalGraphNodeEntity>> resources =
@@ -152,236 +365,13 @@ public class FFPhysicalGraphNodeController {
     @RequestMapping(path = "y/{y}",
             method = RequestMethod.GET)
     public List<Resource<FFPhysicalGraphNodeEntity>> getByY(
-            @PathVariable
-            final Long y) {
+            @PathVariable final Long y) {
         Iterator<FFPhysicalGraphNodeEntity> iter = repository.findByY(y)
                 .iterator();
         List<Resource<FFPhysicalGraphNodeEntity>> resources =
                 new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
         while (iter.hasNext()) {
             resources.add(getPhysicalGraphNodeResource(iter.next()));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
-     * Gets a {@link Resource} instance with links for the
-     * {@link FFPhysicalGraphNodeEntity}.
-     * @param entity the {@link FFPhysicalGraphNodeEntity}
-     * @return {@link Resource}<{@link FFPhysicalGraphNodeEntity}>
-     */
-    private Resource<FFPhysicalGraphNodeEntity> getPhysicalGraphNodeResource(
-            final FFPhysicalGraphNodeEntity entity) {
-        Resource<FFPhysicalGraphNodeEntity> resource =
-                new Resource<FFPhysicalGraphNodeEntity>(
-                        entity);
-        // link to entity
-        resource.add(ControllerLinkBuilder.linkTo(
-                ControllerLinkBuilder.methodOn(getClass()).getById(
-                        entity.getId()))
-                .withSelfRel());
-        return resource;
-    }
-    /**
-     * Saves a single {@link FFPhysicalGraphNodeEntity}.
-     * @param entity the {@link FFPhysicalGraphNodeEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFPhysicalGraphNodeEntity>> save(
-            @RequestBody
-            final FFPhysicalGraphNodeEntity entity) {
-        if (entity.getTerrain() != null
-                && entity.getTerrain().getId() == null) {
-            setTerrainIdFromRepository(entity);
-        }
-
-        FFPhysicalGraphNodeEntity savedEntity = repository.save(entity);
-        List<Resource<FFPhysicalGraphNodeEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-
-    /**
-     * Saves multiple {@link FFPhysicalGraphNodeEntity}s.
-     * @param entities the list of {@link FFPhysicalGraphNodeEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.POST)
-    public List<Resource<FFPhysicalGraphNodeEntity>> save(
-            @RequestBody
-            final List<FFPhysicalGraphNodeEntity> entities) {
-        List<Resource<FFPhysicalGraphNodeEntity>> resources =
-                new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
-        Iterator<FFPhysicalGraphNodeEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(save(iter.next()).get(0));
-        }
-        iter = null;
-        return resources;
-    }
-
-    /**
-     * Tries to set the Id for an entity to be saved by locating it in the
-     * repository.
-     * @param entity the {@link FFPhysicalGraphNodeEntity} instance
-     */
-    private void setIdFromRepository(final FFPhysicalGraphNodeEntity entity) {
-        List<FFPhysicalGraphNodeEntity> old = null;
-        try {
-            Method method = null;
-            Field field = null;
-            try {
-                method = repository.getClass().getDeclaredMethod(
-                        "findByName", new Class[] { String.class });
-                field = FFPhysicalGraphNodeEntity.class
-                        .getDeclaredField("name");
-            } catch (NoSuchMethodException | NoSuchFieldException e) {
-                // TODO Auto-generated catch block
-                System.out.println(
-                        "Cannot get Entity FFPhysicalGraphNodeEntity from Repository by name");
-            }
-            if (method != null
-                    && field != null) {
-                field.setAccessible(true);
-                if (field.get(entity) != null) {
-                    old = (List<FFPhysicalGraphNodeEntity>) method.invoke(
-                            repository, (String) field.get(entity));
-                }
-            }
-            if (old == null
-                    || (old != null
-                            && old.size() > 1)) {
-                try {
-                    method = repository.getClass().getDeclaredMethod(
-                            "findByCode", new Class[] { String.class });
-                    field = FFPhysicalGraphNodeEntity.class.getDeclaredField(
-                            "code");
-                } catch (NoSuchMethodException | NoSuchFieldException e) {
-                    // TODO Auto-generated catch block
-                    System.out.println(
-                            "Cannot get Entity FFPhysicalGraphNodeEntity from Repository by code");
-                }
-                if (method != null
-                        && field != null) {
-                    field.setAccessible(true);
-                    if (field.get(entity) != null) {
-                        old = (List<FFPhysicalGraphNodeEntity>) method.invoke(
-                                repository, (String) field.get(entity));
-                    }
-                }
-            }
-            method = null;
-            field = null;
-        } catch (SecurityException | IllegalArgumentException
-                | IllegalAccessException
-                | InvocationTargetException e) {
-            System.out.println(
-                    "Cannot get Entity FFPhysicalGraphNodeEntity from Repository by name or code");
-        }
-        if (old != null
-                && old.size() == 1) {
-            entity.setId(old.get(0).getId());
-        }
-        old = null;
-    }
-    private void setTerrainIdFromRepository(
-            final FFPhysicalGraphNodeEntity entity) {
-        FFTerrainEntity memberEntity = null;
-        List<Resource<FFTerrainEntity>> list = null;
-        try {
-            Method method = null;
-            Field field = null;
-            try {
-                method = FFTerrainController.class.getDeclaredMethod(
-                        "getByName", new Class[] { String.class });
-                field = FFTerrainEntity.class.getDeclaredField("name");
-            } catch (NoSuchMethodException | NoSuchFieldException e) {}
-            if (method != null
-                    && field != null) {
-                field.setAccessible(true);
-                if (field.get(entity.getTerrain()) != null) {
-                    list = (List<Resource<FFTerrainEntity>>) method
-                            .invoke(
-                                    FFTerrainController.getInstance(),
-                                    (String) field
-                                            .get(entity.getTerrain()));
-                }
-            }
-            if (list == null) {
-                try {
-                    method = FFTerrainController.class.getDeclaredMethod(
-                            "getByCode", new Class[] { String.class });
-                    field = FFTerrainEntity.class
-                            .getDeclaredField("code");
-                } catch (NoSuchMethodException | NoSuchFieldException e) {}
-                if (method != null
-                        && field != null) {
-                    field.setAccessible(true);
-                    if (field.get(entity.getTerrain()) != null) {
-                        list = (List<Resource<FFTerrainEntity>>) method
-                                .invoke(FFTerrainController
-                                        .getInstance(), (String) field.get(
-                                                entity.getTerrain()));
-                    }
-                }
-            }
-            method = null;
-            field = null;
-        } catch (SecurityException | IllegalArgumentException
-                | IllegalAccessException
-                | InvocationTargetException e) {}
-        if (list != null
-                && !list.isEmpty()) {
-            memberEntity = list.get(0).getContent();
-        }
-        if (memberEntity == null) {
-            memberEntity = (FFTerrainEntity) ((Resource) FFTerrainController
-                    .getInstance().save(
-                            entity.getTerrain())
-                    .get(0)).getContent();
-        }
-        entity.setTerrain(memberEntity);
-        list = null;
-    }
-    /**
-     * Updates a single {@link FFPhysicalGraphNodeEntity}.
-     * @param entity the {@link FFPhysicalGraphNodeEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.PUT)
-    public List<Resource<FFPhysicalGraphNodeEntity>> update(
-            @RequestBody
-            final FFPhysicalGraphNodeEntity entity) {
-        if (entity.getId() == null) {
-            setIdFromRepository(entity);
-        }
-        if (entity.getTerrain() != null
-                && entity.getTerrain().getId() == null) {
-            setTerrainIdFromRepository(entity);
-        }
-
-        FFPhysicalGraphNodeEntity savedEntity = repository.save(entity);
-        List<Resource<FFPhysicalGraphNodeEntity>> list = getById(
-                savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-    /**
-     * Updates multiple {@link FFPhysicalGraphNodeEntity}s.
-     * @param entities the list of {@link FFPhysicalGraphNodeEntity} instances
-     * @return {@link List}<{@link Resource}<{@link FFPhysicalGraphNodeEntity}>>
-     */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFPhysicalGraphNodeEntity>> update(
-            @RequestBody
-            final List<FFPhysicalGraphNodeEntity> entities) {
-        List<Resource<FFPhysicalGraphNodeEntity>> resources =
-                new ArrayList<Resource<FFPhysicalGraphNodeEntity>>();
-        Iterator<FFPhysicalGraphNodeEntity> iter = entities.iterator();
-        while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
         }
         iter = null;
         return resources;

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFEventEntity;
+
 import com.osrapi.repositories.ff.FFEventRepository;
 
 /**
@@ -64,34 +65,13 @@ public class FFEventController {
         return resources;
     }
     /**
-     * Gets a list of {@link FFEventEntity}s that share a code.
-     * @param code the event' code
-     * @return {@link List}<{@link Resource}<{@link FFEventEntity}>>
-     */
-    @RequestMapping(path = "code/{code}",
-            method = RequestMethod.GET)
-    public List<Resource<FFEventEntity>> getByCode(
-            @PathVariable
-            final String code) {
-        Iterator<FFEventEntity> iter = repository.findByCode(code)
-                .iterator();
-        List<Resource<FFEventEntity>> resources =
-                new ArrayList<Resource<FFEventEntity>>();
-        while (iter.hasNext()) {
-            resources.add(getEventResource(iter.next()));
-        }
-        iter = null;
-        return resources;
-    }
-    /**
      * Gets a single {@link FFEventEntity}.
      * @param id the event type's id
      * @return {@link List}<{@link Resource}<{@link FFEventEntity}>>
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFEventEntity>> getById(
-            @PathVariable
-            final Long id) {
+            @PathVariable final Long id) {
         FFEventEntity entity = repository.findOne(id);
         List<Resource<FFEventEntity>> resources =
                 new ArrayList<Resource<FFEventEntity>>();
@@ -109,7 +89,7 @@ public class FFEventController {
             final FFEventEntity entity) {
         Resource<FFEventEntity> resource =
                 new Resource<FFEventEntity>(
-                        entity);
+                entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -118,30 +98,13 @@ public class FFEventController {
         return resource;
     }
     /**
-     * Saves a single {@link FFEventEntity}.
-     * @param entity the {@link FFEventEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFEventEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFEventEntity>> save(
-            @RequestBody
-            final FFEventEntity entity) {
-
-        FFEventEntity savedEntity = repository.save(entity);
-        List<Resource<FFEventEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-    /**
      * Saves multiple {@link FFEventEntity}s.
      * @param entities the list of {@link FFEventEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFEventEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
     public List<Resource<FFEventEntity>> save(
-            @RequestBody
-            final List<FFEventEntity> entities) {
+            @RequestBody final List<FFEventEntity> entities) {
         List<Resource<FFEventEntity>> resources =
                 new ArrayList<Resource<FFEventEntity>>();
         Iterator<FFEventEntity> iter = entities.iterator();
@@ -150,6 +113,22 @@ public class FFEventController {
         }
         iter = null;
         return resources;
+    }
+    /**
+     * Saves a single {@link FFEventEntity}.
+     * @param entity the {@link FFEventEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFEventEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFEventEntity>> save(
+            @RequestBody final FFEventEntity entity) {
+    
+    
+        FFEventEntity savedEntity = repository.save(entity);
+        List<Resource<FFEventEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -167,20 +146,19 @@ public class FFEventController {
                 field = FFEventEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                System.out.println(
-                        "Cannot get Entity FFEventEntity from Repository by name");
+                System.out.println("Cannot get Entity FFEventEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFEventEntity>) method.invoke(
-                            repository, (String) field.get(entity));
+              repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                            && old.size() > 1)) {
+                    && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -188,8 +166,7 @@ public class FFEventController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    System.out.println(
-                            "Cannot get Entity FFEventEntity from Repository by code");
+          System.out.println("Cannot get Entity FFEventEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -205,14 +182,29 @@ public class FFEventController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            System.out.println(
-                    "Cannot get Entity FFEventEntity from Repository by name or code");
+                System.out.println("Cannot get Entity FFEventEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;
+        old = null;        
+    }
+    /**
+     * Updates multiple {@link FFEventEntity}s.
+     * @param entities the list of {@link FFEventEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFEventEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFEventEntity>> update(
+            @RequestBody final List<FFEventEntity> entities) {
+        List<Resource<FFEventEntity>> resources = new ArrayList<Resource<FFEventEntity>>();
+        Iterator<FFEventEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(update(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
     }
     /**
      * Updates a single {@link FFEventEntity}.
@@ -221,12 +213,12 @@ public class FFEventController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     public List<Resource<FFEventEntity>> update(
-            @RequestBody
-            final FFEventEntity entity) {
+            @RequestBody final FFEventEntity entity) {        
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
-
+    
+    
         FFEventEntity savedEntity = repository.save(entity);
         List<Resource<FFEventEntity>> list = getById(
                 savedEntity.getId());
@@ -235,19 +227,20 @@ public class FFEventController {
     }
 
     /**
-     * Updates multiple {@link FFEventEntity}s.
-     * @param entities the list of {@link FFEventEntity} instances
+     * Gets a list of {@link FFEventEntity}s that share a code.
+     * @param code the event' code
      * @return {@link List}<{@link Resource}<{@link FFEventEntity}>>
      */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFEventEntity>> update(
-            @RequestBody
-            final List<FFEventEntity> entities) {
+    @RequestMapping(path = "code/{code}",
+            method = RequestMethod.GET)
+    public List<Resource<FFEventEntity>> getByCode(
+            @PathVariable final String code) {
+        Iterator<FFEventEntity> iter = repository.findByCode(code)
+                .iterator();
         List<Resource<FFEventEntity>> resources =
                 new ArrayList<Resource<FFEventEntity>>();
-        Iterator<FFEventEntity> iter = entities.iterator();
         while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
+            resources.add(getEventResource(iter.next()));
         }
         iter = null;
         return resources;

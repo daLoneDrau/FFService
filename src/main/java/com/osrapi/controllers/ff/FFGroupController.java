@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFGroupEntity;
+
 import com.osrapi.repositories.ff.FFGroupRepository;
 
 /**
@@ -70,33 +71,12 @@ public class FFGroupController {
      */
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Resource<FFGroupEntity>> getById(
-            @PathVariable
-            final Long id) {
+            @PathVariable final Long id) {
         FFGroupEntity entity = repository.findOne(id);
         List<Resource<FFGroupEntity>> resources =
                 new ArrayList<Resource<FFGroupEntity>>();
         resources.add(getGroupResource(entity));
         entity = null;
-        return resources;
-    }
-    /**
-     * Gets a list of {@link FFGroupEntity}s that share a name.
-     * @param name the group' name
-     * @return {@link List}<{@link Resource}<{@link FFGroupEntity}>>
-     */
-    @RequestMapping(path = "name/{name}",
-            method = RequestMethod.GET)
-    public List<Resource<FFGroupEntity>> getByName(
-            @PathVariable
-            final String name) {
-        Iterator<FFGroupEntity> iter = repository.findByName(name)
-                .iterator();
-        List<Resource<FFGroupEntity>> resources =
-                new ArrayList<Resource<FFGroupEntity>>();
-        while (iter.hasNext()) {
-            resources.add(getGroupResource(iter.next()));
-        }
-        iter = null;
         return resources;
     }
     /**
@@ -109,7 +89,7 @@ public class FFGroupController {
             final FFGroupEntity entity) {
         Resource<FFGroupEntity> resource =
                 new Resource<FFGroupEntity>(
-                        entity);
+                entity);
         // link to entity
         resource.add(ControllerLinkBuilder.linkTo(
                 ControllerLinkBuilder.methodOn(getClass()).getById(
@@ -118,30 +98,13 @@ public class FFGroupController {
         return resource;
     }
     /**
-     * Saves a single {@link FFGroupEntity}.
-     * @param entity the {@link FFGroupEntity} instance
-     * @return {@link List}<{@link Resource}<{@link FFGroupEntity}>>
-     */
-    @RequestMapping(method = RequestMethod.POST)
-    public List<Resource<FFGroupEntity>> save(
-            @RequestBody
-            final FFGroupEntity entity) {
-
-        FFGroupEntity savedEntity = repository.save(entity);
-        List<Resource<FFGroupEntity>> list =
-                getById(savedEntity.getId());
-        savedEntity = null;
-        return list;
-    }
-    /**
      * Saves multiple {@link FFGroupEntity}s.
      * @param entities the list of {@link FFGroupEntity} instances
      * @return {@link List}<{@link Resource}<{@link FFGroupEntity}>>
      */
     @RequestMapping(path = "/bulk", method = RequestMethod.POST)
     public List<Resource<FFGroupEntity>> save(
-            @RequestBody
-            final List<FFGroupEntity> entities) {
+            @RequestBody final List<FFGroupEntity> entities) {
         List<Resource<FFGroupEntity>> resources =
                 new ArrayList<Resource<FFGroupEntity>>();
         Iterator<FFGroupEntity> iter = entities.iterator();
@@ -150,6 +113,22 @@ public class FFGroupController {
         }
         iter = null;
         return resources;
+    }
+    /**
+     * Saves a single {@link FFGroupEntity}.
+     * @param entity the {@link FFGroupEntity} instance
+     * @return {@link List}<{@link Resource}<{@link FFGroupEntity}>>
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    public List<Resource<FFGroupEntity>> save(
+            @RequestBody final FFGroupEntity entity) {
+    
+    
+        FFGroupEntity savedEntity = repository.save(entity);
+        List<Resource<FFGroupEntity>> list =
+                getById(savedEntity.getId());
+        savedEntity = null;
+        return list;
     }
     /**
      * Tries to set the Id for an entity to be saved by locating it in the
@@ -167,20 +146,19 @@ public class FFGroupController {
                 field = FFGroupEntity.class.getDeclaredField("name");
             } catch (NoSuchMethodException | NoSuchFieldException e) {
                 // TODO Auto-generated catch block
-                System.out.println(
-                        "Cannot get Entity FFGroupEntity from Repository by name");
+                System.out.println("Cannot get Entity FFGroupEntity from Repository by name");
             }
             if (method != null
                     && field != null) {
                 field.setAccessible(true);
                 if (field.get(entity) != null) {
                     old = (List<FFGroupEntity>) method.invoke(
-                            repository, (String) field.get(entity));
+              repository, (String) field.get(entity));
                 }
             }
             if (old == null
                     || (old != null
-                            && old.size() > 1)) {
+                    && old.size() > 1)) {
                 try {
                     method = repository.getClass().getDeclaredMethod(
                             "findByCode", new Class[] { String.class });
@@ -188,8 +166,7 @@ public class FFGroupController {
                             "code");
                 } catch (NoSuchMethodException | NoSuchFieldException e) {
                     // TODO Auto-generated catch block
-                    System.out.println(
-                            "Cannot get Entity FFGroupEntity from Repository by code");
+          System.out.println("Cannot get Entity FFGroupEntity from Repository by code");
                 }
                 if (method != null
                         && field != null) {
@@ -205,14 +182,29 @@ public class FFGroupController {
         } catch (SecurityException | IllegalArgumentException
                 | IllegalAccessException
                 | InvocationTargetException e) {
-            System.out.println(
-                    "Cannot get Entity FFGroupEntity from Repository by name or code");
+                System.out.println("Cannot get Entity FFGroupEntity from Repository by name or code");
         }
         if (old != null
                 && old.size() == 1) {
             entity.setId(old.get(0).getId());
         }
-        old = null;
+        old = null;        
+    }
+    /**
+     * Updates multiple {@link FFGroupEntity}s.
+     * @param entities the list of {@link FFGroupEntity} instances
+     * @return {@link List}<{@link Resource}<{@link FFGroupEntity}>>
+     */
+    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
+    public List<Resource<FFGroupEntity>> update(
+            @RequestBody final List<FFGroupEntity> entities) {
+        List<Resource<FFGroupEntity>> resources = new ArrayList<Resource<FFGroupEntity>>();
+        Iterator<FFGroupEntity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            resources.add(update(iter.next()).get(0));
+        }
+        iter = null;
+        return resources;
     }
     /**
      * Updates a single {@link FFGroupEntity}.
@@ -221,12 +213,12 @@ public class FFGroupController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     public List<Resource<FFGroupEntity>> update(
-            @RequestBody
-            final FFGroupEntity entity) {
+            @RequestBody final FFGroupEntity entity) {        
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
-
+    
+    
         FFGroupEntity savedEntity = repository.save(entity);
         List<Resource<FFGroupEntity>> list = getById(
                 savedEntity.getId());
@@ -235,19 +227,20 @@ public class FFGroupController {
     }
 
     /**
-     * Updates multiple {@link FFGroupEntity}s.
-     * @param entities the list of {@link FFGroupEntity} instances
+     * Gets a list of {@link FFGroupEntity}s that share a name.
+     * @param name the group' name
      * @return {@link List}<{@link Resource}<{@link FFGroupEntity}>>
      */
-    @RequestMapping(path = "/bulk", method = RequestMethod.PUT)
-    public List<Resource<FFGroupEntity>> update(
-            @RequestBody
-            final List<FFGroupEntity> entities) {
+    @RequestMapping(path = "name/{name}",
+            method = RequestMethod.GET)
+    public List<Resource<FFGroupEntity>> getByName(
+            @PathVariable final String name) {
+        Iterator<FFGroupEntity> iter = repository.findByName(name)
+                .iterator();
         List<Resource<FFGroupEntity>> resources =
                 new ArrayList<Resource<FFGroupEntity>>();
-        Iterator<FFGroupEntity> iter = entities.iterator();
         while (iter.hasNext()) {
-            resources.add(update(iter.next()).get(0));
+            resources.add(getGroupResource(iter.next()));
         }
         iter = null;
         return resources;
