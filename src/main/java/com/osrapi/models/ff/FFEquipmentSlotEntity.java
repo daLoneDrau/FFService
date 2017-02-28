@@ -73,24 +73,24 @@ public final class FFEquipmentSlotEntity {
         id = val;
     }
 
-    /** the val. */
-    @Column(name = "val")
-    @JsonProperty("val")
+    /** the value. */
+    @Column(name = "value")
+    @JsonProperty("value")
     @NotNull
-    private long                    val;
+    private long                    value;
     /**
-     * Gets the val.
+     * Gets the value.
      * @return {@link long}
      */
-    public long getVal() {
-        return val;
+    public long getValue() {
+        return value;
     }
     /**
-     * Sets the val.
+     * Sets the value.
      * @param val the new value
      */
-    public void setVal(final long val) {
-        this.val = val;
+    public void setValue(final long val) {
+        value = val;
     }
 
     /** the name. */

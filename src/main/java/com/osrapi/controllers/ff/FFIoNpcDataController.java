@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.osrapi.models.ff.FFIoNpcDataEntity;
 import com.osrapi.models.ff.FFGenderEntity;
+import com.osrapi.models.ff.FFGroupEntity;
 
 import com.osrapi.repositories.ff.FFIoNpcDataRepository;
 
@@ -123,7 +124,84 @@ public class FFIoNpcDataController {
     @RequestMapping(method = RequestMethod.POST)
     public List<Resource<FFIoNpcDataEntity>> save(
             @RequestBody final FFIoNpcDataEntity entity) {
-            if (entity.getGender() != null
+        if (entity.getGroups() != null
+                && !entity.getGroups().isEmpty()) {
+            for (int i = entity.getGroups().size() - 1; i >= 0; i--) {
+                FFGroupEntity groups = null;
+                List<Resource<FFGroupEntity>> list = null;
+                try {
+                    Method method = null;
+          try {
+            method = FFGroupController.class.getDeclaredMethod(
+                "getByName", new Class[] { String.class });
+          } catch (NoSuchMethodException e) {
+            System.out.println("Cannot get embedded lookup Entity FFGroupEntity from Controller by name");
+                    }
+                    Field field = null;
+          try {
+            field = FFGroupEntity.class
+                .getDeclaredField("name");
+          } catch (NoSuchFieldException e) {
+            System.out.println("Cannot get embedded lookup Entity FFGroupEntity from class by name");
+                    }
+                    if (method != null
+                            && field != null) {
+                        field.setAccessible(true);
+                        if (field.get(entity.getGroups().get(i)) != null) {
+                            list = (List<Resource<FFGroupEntity>>) method
+                                    .invoke(
+                                            FFGroupController.getInstance(),
+                                            (String) field.get(entity.getGroups().get(i)));
+                        }
+                    }
+                    if (list == null) {
+            try {
+              method = FFGroupController.class.getDeclaredMethod(
+                  "getByCode", new Class[] { String.class });
+            } catch (NoSuchMethodException e) {
+              System.out.println("Cannot get embedded lookup Entity FFGroupEntity from Controller by code");
+            }
+            try {
+              field = FFGroupEntity.class.getDeclaredField(
+                  "code");
+            } catch (NoSuchFieldException e) {
+              System.out.println("Cannot get embedded lookup Entity FFGroupEntity from class by code");
+            }
+                        if (method != null
+                                && field != null) {
+                            field.setAccessible(true);
+                            if (field.get(entity.getGroups().get(i)) != null) {
+                                list = (List<Resource<FFGroupEntity>>) method
+                                        .invoke(
+                                                FFGroupController
+                                                        .getInstance(),
+                                                (String) field
+                                                        .get(entity.getGroups().get(i)));
+                            }
+                        }
+                    }
+                    method = null;
+                    field = null;
+                } catch (SecurityException | IllegalArgumentException
+                        | IllegalAccessException
+                        | InvocationTargetException e) {
+              System.out.println("CANNOT get embedded lookup Entity FFGroupEntity by name or code");
+                }
+                if (list != null
+                        && !list.isEmpty()) {
+                    groups = list.get(0).getContent();
+                }
+                if (groups == null) {
+                    groups = (FFGroupEntity) ((Resource) FFGroupController
+                            .getInstance()
+                            .save(entity.getGroups().get(i)).get(0)).getContent();
+                }
+                entity.getGroups().set(i, groups);
+                list = null;
+            }
+        }
+
+        if (entity.getGender() != null
         && entity.getGender().getId() == null) {
       setGenderIdFromRepository(entity);
         }
@@ -223,7 +301,84 @@ public class FFIoNpcDataController {
         if (entity.getId() == null) {
             setIdFromRepository(entity);
         }
-            if (entity.getGender() != null
+        if (entity.getGroups() != null
+                && !entity.getGroups().isEmpty()) {
+            for (int i = entity.getGroups().size() - 1; i >= 0; i--) {
+                FFGroupEntity groups = null;
+                List<Resource<FFGroupEntity>> list = null;
+                try {
+                    Method method = null;
+          try {
+            method = FFGroupController.class.getDeclaredMethod(
+                "getByName", new Class[] { String.class });
+          } catch (NoSuchMethodException e) {
+            System.out.println("Cannot get embedded lookup Entity FFGroupEntity from Controller by name");
+                    }
+                    Field field = null;
+          try {
+            field = FFGroupEntity.class
+                .getDeclaredField("name");
+          } catch (NoSuchFieldException e) {
+            System.out.println("Cannot get embedded lookup Entity FFGroupEntity from class by name");
+                    }
+                    if (method != null
+                            && field != null) {
+                        field.setAccessible(true);
+                        if (field.get(entity.getGroups().get(i)) != null) {
+                            list = (List<Resource<FFGroupEntity>>) method
+                                    .invoke(
+                                            FFGroupController.getInstance(),
+                                            (String) field.get(entity.getGroups().get(i)));
+                        }
+                    }
+                    if (list == null) {
+            try {
+              method = FFGroupController.class.getDeclaredMethod(
+                  "getByCode", new Class[] { String.class });
+            } catch (NoSuchMethodException e) {
+              System.out.println("Cannot get embedded lookup Entity FFGroupEntity from Controller by code");
+            }
+            try {
+              field = FFGroupEntity.class.getDeclaredField(
+                  "code");
+            } catch (NoSuchFieldException e) {
+              System.out.println("Cannot get embedded lookup Entity FFGroupEntity from class by code");
+            }
+                        if (method != null
+                                && field != null) {
+                            field.setAccessible(true);
+                            if (field.get(entity.getGroups().get(i)) != null) {
+                                list = (List<Resource<FFGroupEntity>>) method
+                                        .invoke(
+                                                FFGroupController
+                                                        .getInstance(),
+                                                (String) field
+                                                        .get(entity.getGroups().get(i)));
+                            }
+                        }
+                    }
+                    method = null;
+                    field = null;
+                } catch (SecurityException | IllegalArgumentException
+                        | IllegalAccessException
+                        | InvocationTargetException e) {
+              System.out.println("CANNOT get embedded lookup Entity FFGroupEntity by name or code");
+                }
+                if (list != null
+                        && !list.isEmpty()) {
+                    groups = list.get(0).getContent();
+                }
+                if (groups == null) {
+                    groups = (FFGroupEntity) ((Resource) FFGroupController
+                            .getInstance()
+                            .save(entity.getGroups().get(i)).get(0)).getContent();
+                }
+                entity.getGroups().set(i, groups);
+                list = null;
+            }
+        }
+
+        if (entity.getGender() != null
         && entity.getGender().getId() == null) {
       setGenderIdFromRepository(entity);
         }

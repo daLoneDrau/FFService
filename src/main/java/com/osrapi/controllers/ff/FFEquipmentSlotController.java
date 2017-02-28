@@ -246,15 +246,15 @@ public class FFEquipmentSlotController {
         return resources;
     }
     /**
-     * Gets a list of {@link FFEquipmentSlotEntity}s that share a val.
-     * @param val the equipment_slot' val
+     * Gets a list of {@link FFEquipmentSlotEntity}s that share a value.
+     * @param value the equipment_slot' value
      * @return {@link List}<{@link Resource}<{@link FFEquipmentSlotEntity}>>
      */
-    @RequestMapping(path = "val/{val}",
+    @RequestMapping(path = "value/{value}",
             method = RequestMethod.GET)
-    public List<Resource<FFEquipmentSlotEntity>> getByVal(
-            @PathVariable final Long val) {
-        Iterator<FFEquipmentSlotEntity> iter = repository.findByVal(val)
+    public List<Resource<FFEquipmentSlotEntity>> getByValue(
+            @PathVariable final Long value) {
+        Iterator<FFEquipmentSlotEntity> iter = repository.findByValue(value)
                 .iterator();
         List<Resource<FFEquipmentSlotEntity>> resources =
                 new ArrayList<Resource<FFEquipmentSlotEntity>>();

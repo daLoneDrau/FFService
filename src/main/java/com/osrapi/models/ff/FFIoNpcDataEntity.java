@@ -96,7 +96,7 @@ public final class FFIoNpcDataEntity {
     /** the weapon. */
     @Column(name = "weapon")
     @JsonProperty("weapon")
-    @NotNull
+    
     private String                    weapon;
     /**
      * Gets the weapon.
@@ -256,7 +256,7 @@ public final class FFIoNpcDataEntity {
     /** the internalScript. */
     @Column(name = "internal_script")
     @JsonProperty("internal_script")
-    
+    @NotNull
     private String                    internalScript;
     /**
      * Gets the internalScript.
@@ -278,7 +278,7 @@ public final class FFIoNpcDataEntity {
     @Fetch(FetchMode.SELECT)
     @JoinColumn(name = "gender")
     @JsonProperty("gender")
-  @NotNull
+  
     private FFGenderEntity    gender;
     /**
      * Gets the gender.
@@ -473,6 +473,35 @@ public final class FFIoNpcDataEntity {
      */
     public void setBehavior(final Long val) {
         behavior = val;
+    }
+
+    /**
+     * the list of {@link FFGroupEntity}s associated with this
+     * {@link FFIoNpcDataEntity}.
+     */
+    @OneToMany(targetEntity = FFGroupEntity.class,
+      fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
+    @JoinTable(name = "io_npc_data_groups_lookup", schema = "ff",
+  joinColumns = @JoinColumn(name = "io_npc_data_id",
+  referencedColumnName = "io_npc_data_id"),
+  inverseJoinColumns = @JoinColumn(name = "group_id",
+  referencedColumnName = "group_id"))
+    @JsonProperty("groups")
+    private List<FFGroupEntity>    groups;
+    /**
+     * Gets the list of groupss.
+     * @return {@link List}<{@link FFGroupEntity}>
+     */
+    public List<FFGroupEntity> getGroups() {
+        return groups;
+    }
+    /**
+     * Sets the list of groupss.
+     * @param val the new value
+     */
+    public void setGroups(final List<FFGroupEntity> val) {
+        groups = val;
     }
 
     @ElementCollection
