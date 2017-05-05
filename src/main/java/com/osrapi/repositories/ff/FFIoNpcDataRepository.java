@@ -76,6 +76,12 @@ extends CrudRepository<FFIoNpcDataEntity, Long> {
 	 */
 	List<FFIoNpcDataEntity> findByInternalScript(String internalScript);
 	/**
+	 * Retrieves a list of io npc datas by their internalScriptJs.
+	 * @param internalScriptJs the internalScriptJs
+	 * @return {@link List}<{@link FFIoNpcDataEntity}>
+	 */
+	List<FFIoNpcDataEntity> findByInternalScriptJs(String internalScriptJs);
+	/**
 	 * Retrieves a list of io npc datas by their life.
 	 * @param life the life
 	 * @return {@link List}<{@link FFIoNpcDataEntity}>

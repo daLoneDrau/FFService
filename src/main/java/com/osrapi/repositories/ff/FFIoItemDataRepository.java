@@ -40,6 +40,12 @@ extends CrudRepository<FFIoItemDataEntity, Long> {
 	 */
 	List<FFIoItemDataEntity> findByInternalScript(String internalScript);
 	/**
+	 * Retrieves a list of io item datas by their internalScriptJs.
+	 * @param internalScriptJs the internalScriptJs
+	 * @return {@link List}<{@link FFIoItemDataEntity}>
+	 */
+	List<FFIoItemDataEntity> findByInternalScriptJs(String internalScriptJs);
+	/**
 	 * Retrieves a list of io item datas by their leftRing.
 	 * @param leftRing the leftRing
 	 * @return {@link List}<{@link FFIoItemDataEntity}>

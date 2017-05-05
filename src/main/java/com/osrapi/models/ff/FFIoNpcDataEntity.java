@@ -253,6 +253,26 @@ public final class FFIoNpcDataEntity {
         life = val;
     }
 
+    /** the internalScriptJs. */
+    @Column(name = "internal_script_js")
+    @JsonProperty("internal_script_js")
+    @NotNull
+    private String                    internalScriptJs;
+    /**
+     * Gets the internalScriptJs.
+     * @return {@link String}
+     */
+    public String getInternalScriptJs() {
+        return internalScriptJs;
+    }
+    /**
+     * Sets the internalScriptJs.
+     * @param val the new value
+     */
+    public void setInternalScriptJs(final String val) {
+        internalScriptJs = val;
+    }
+
     /** the internalScript. */
     @Column(name = "internal_script")
     @JsonProperty("internal_script")

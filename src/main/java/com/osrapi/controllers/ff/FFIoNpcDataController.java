@@ -646,6 +646,25 @@ public class FFIoNpcDataController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFIoNpcDataEntity}s that share a internalScriptJs.
+     * @param internalScriptJs the io_npc_data' internalScriptJs
+     * @return {@link List}<{@link Resource}<{@link FFIoNpcDataEntity}>>
+     */
+    @RequestMapping(path = "internal_script_js/{internalScriptJs}",
+            method = RequestMethod.GET)
+    public List<Resource<FFIoNpcDataEntity>> getByInternalScriptJs(
+            @PathVariable final String internalScriptJs) {
+        Iterator<FFIoNpcDataEntity> iter = repository.findByInternalScriptJs(internalScriptJs)
+                .iterator();
+        List<Resource<FFIoNpcDataEntity>> resources =
+                new ArrayList<Resource<FFIoNpcDataEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getIoNpcDataResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a list of {@link FFIoNpcDataEntity}s that share a life.
      * @param life the io_npc_data' life
      * @return {@link List}<{@link Resource}<{@link FFIoNpcDataEntity}>>

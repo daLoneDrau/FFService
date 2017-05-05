@@ -613,6 +613,25 @@ public class FFIoItemDataController {
         return resources;
     }
     /**
+     * Gets a list of {@link FFIoItemDataEntity}s that share a internalScriptJs.
+     * @param internalScriptJs the io_item_data' internalScriptJs
+     * @return {@link List}<{@link Resource}<{@link FFIoItemDataEntity}>>
+     */
+    @RequestMapping(path = "internal_script_js/{internalScriptJs}",
+            method = RequestMethod.GET)
+    public List<Resource<FFIoItemDataEntity>> getByInternalScriptJs(
+            @PathVariable final String internalScriptJs) {
+        Iterator<FFIoItemDataEntity> iter = repository.findByInternalScriptJs(internalScriptJs)
+                .iterator();
+        List<Resource<FFIoItemDataEntity>> resources =
+                new ArrayList<Resource<FFIoItemDataEntity>>();
+        while (iter.hasNext()) {
+            resources.add(getIoItemDataResource(iter.next()));
+        }
+        iter = null;
+        return resources;
+    }
+    /**
      * Gets a list of {@link FFIoItemDataEntity}s that share a leftRing.
      * @param leftRing the io_item_data' leftRing
      * @return {@link List}<{@link Resource}<{@link FFIoItemDataEntity}>>
